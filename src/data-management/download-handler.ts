@@ -127,7 +127,7 @@ function downloadBasisdokumentAsPDF(obj: any, fileName: string) {
 
   // Rubrum Plaintiff
   let metaPlaintiff;
-  if (obj["metaData"]) {
+  if (obj["metaData"] && obj["metaData"]["plaintiff"] !== undefined) {
     metaPlaintiff = obj["metaData"]["plaintiff"];
   } else {
     metaPlaintiff = "Es wurde kein Rubrum von der Klagepartei angelegt.";
@@ -136,7 +136,7 @@ function downloadBasisdokumentAsPDF(obj: any, fileName: string) {
 
   // Rubrum Defendant
   let metaDefendant;
-  if (obj["metaData"]) {
+  if (obj["metaData"] && obj["metaData"]["defendant"] !== undefined) {
     metaDefendant = obj["metaData"]["defendant"];
   } else {
     metaDefendant = "Es wurde kein Rubrum von der Beklagtenpartei angelegt.";
