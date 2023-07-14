@@ -1,5 +1,5 @@
 export interface ITheme {
-  id: string,
+  id: string;
   title: string;
   primaryPlaintiff: string;
   secondaryPlaintiff: string;
@@ -53,7 +53,7 @@ export enum UserRole {
   Plaintiff = "Klagepartei",
   Defendant = "Beklagtenpartei",
   Judge = "Richter:in",
-  Client = "Mandant:in"
+  Client = "Mandant:in",
 }
 
 export enum Sorting {
@@ -64,7 +64,7 @@ export enum Sorting {
 export enum UsageMode {
   Open,
   Create,
-  Readonly
+  Readonly,
 }
 
 export enum SidebarState {
@@ -72,6 +72,7 @@ export enum SidebarState {
   Notes,
   Hints,
   Bookmarks,
+  Evidences,
 }
 
 export interface ISection {
@@ -93,6 +94,7 @@ export interface IEntry {
   role: UserRole.Plaintiff | UserRole.Defendant;
   sectionId: string;
   associatedEntry?: string;
+  evidences: IEvidence[];
 }
 
 export enum IDragItemType {
@@ -156,7 +158,20 @@ export interface IStateUserInput {
   basisdokumentFile: string;
   editFile: string;
   basisdokumentFilename: string;
+  coverFilename: string;
   editFilename: string;
   errorText: string;
   newVersionMode: boolean | undefined;
+}
+
+export interface IEvidence {
+  id: string;
+  name: string;
+  hasAttachment: boolean;
+  version: number;
+  isCurrentEntry: boolean;
+  role: UserRole;
+  tag?: string;
+  attachmentId?: string;
+  isInEditMode: boolean;
 }

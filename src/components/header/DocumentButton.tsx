@@ -36,6 +36,7 @@ export const DocumentButton = () => {
   );
 
   const {
+    fileId,
     caseId,
     currentVersion,
     metaData,
@@ -58,17 +59,23 @@ export const DocumentButton = () => {
   const reloadPageAndSave = () => {
     setTimeout(() => {
       downloadBasisdokument(
+        fileId,
         caseId,
         currentVersion,
         versionHistory,
         metaData,
         entries,
         sectionList,
-        hints
+        hints,
+        undefined, //coverPDF
+        undefined, //otherAuthor
+        false, //download new entries additionally
+        undefined //regard
       );
     }, 100);
     setTimeout(() => {
       downloadEditFile(
+        fileId,
         caseId,
         currentVersion,
         highlightedEntries,
@@ -126,7 +133,7 @@ export const DocumentButton = () => {
                     <Tooltip text={theme.title} key={index}>
                       <div
                         className={cx(
-                          `flex flex-row rounded-full hover:border hover:border-darkGrey hover:border-[2px] w-14 h-14 items-center justify-center cursor-pointer`,
+                          `flex flex-row rounded-full hover:border-darkGrey hover:border-[2px] w-14 h-14 items-center justify-center cursor-pointer`,
                           {
                             "border-[3px] border-darkGrey":
                               theme.id === selectedTheme,
@@ -150,22 +157,7 @@ export const DocumentButton = () => {
                 })}
               </div>
             </div>
-            {user?.role !== UserRole.Client && (
-              <DownloadBasisdokumentButton
-                caseId={caseId}
-                currentVersion={currentVersion}
-                versionHistory={versionHistory}
-                metaData={metaData}
-                entries={entries}
-                sectionList={sectionList}
-                hints={hints}
-                highlightedEntries={highlightedEntries}
-                colorSelection={colorSelection}
-                notes={notes}
-                bookmarks={bookmarks}
-                individualSorting={individualSorting}
-              />
-            )}
+            {user?.role !== UserRole.Client && <DownloadBasisdokumentButton />}
             <DropdownMenu.Item
               onClick={() => {
                 if (user?.role === UserRole.Client) {
