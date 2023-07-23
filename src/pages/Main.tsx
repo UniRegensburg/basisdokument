@@ -29,6 +29,7 @@ export const Main: React.FC = () => {
     caseId,
     currentVersion,
     metaData,
+    overview,
     entries,
     highlightedEntries,
   } = useCase();
@@ -48,6 +49,7 @@ export const Main: React.FC = () => {
           currentVersion={currentVersion}
           versionHistory={versionHistory}
           metaData={metaData}
+          overview={overview}
           entries={entries}
           sectionList={sectionList}
           hints={hints}

@@ -1,13 +1,13 @@
 import cx from "classnames";
 import { getTheme } from "../../themes/getTheme";
 
-interface MetaDataBodyProps {
+interface OverviewBodyProps {
   isPlaintiff: boolean;
   selectedTheme: string;
   children: React.ReactNode;
 }
 
-export const MetaDataBody: React.FC<MetaDataBodyProps> = ({
+export const OverviewBody: React.FC<OverviewBodyProps> = ({
   isPlaintiff,
   selectedTheme,
   children,

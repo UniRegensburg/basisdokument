@@ -78,6 +78,7 @@ export const Auth: React.FC<AuthProps> = ({ setIsAuthenticated }) => {
     setFileId,
     setEntries,
     setMetaData,
+    setOverview,
     setCurrentVersion,
     setHighlightedEntries,
     setIndividualEntrySorting,
@@ -300,6 +301,7 @@ export const Auth: React.FC<AuthProps> = ({ setIsAuthenticated }) => {
     setSectionList(basisdokument.sections);
     setHints(basisdokument.judgeHints);
     setMetaData(basisdokument.metaData);
+    setOverview(basisdokument.overview);
     setCurrentVersion(basisdokument.currentVersion);
     setCaseIdContext(basisdokument.caseId);
   };

@@ -9,6 +9,7 @@ import {
   IMetaData,
   IndividualEntrySortingEntry,
   INote,
+  IOverview,
   ISection,
   IVersion,
 } from "../types";
@@ -205,6 +206,24 @@ async function downloadBasisdokumentAsPDF(
     metaDefendant = "Es wurde kein Rubrum von der Beklagtenpartei angelegt.";
   }
   rubrumBeklagt = [parseHTMLtoString(metaDefendant)];
+
+  // Ueberblick Plaintiff
+  let overviewPlaintiff;
+  if (obj["overview"] && obj["overview"]["plaintiff"] !== undefined) {
+    overviewPlaintiff = obj["overview"]["plaintiff"];
+  } else {
+    overviewPlaintiff = "Es wurde kein Überblick von der Klagepartei angelegt.";
+  }
+  rubrumKlage = [parseHTMLtoString(overviewPlaintiff)];
+
+  // Ueberblick Defendant
+  let overviewDefendant;
+  if (obj["overview"] && obj["overview"]["defendant"] !== undefined) {
+    overviewDefendant = obj["overview"]["defendant"];
+  } else {
+    overviewDefendant = "Es wurde kein Überblick von der Beklagtenpartei angelegt.";
+  }
+  rubrumBeklagt = [parseHTMLtoString(overviewDefendant)];
 
   // hints from the judge §139 ZPO
   if (obj["judgeHints"].length === 0) {
@@ -825,6 +844,7 @@ export function downloadBasisdokument(
   currentVersion: number,
   versionHistory: IVersion[],
   metaData: IMetaData | null,
+  overview: IOverview | null,
   entries: IEntry[],
   sectionList: ISection[],
   hints: IHint[],
@@ -843,6 +863,7 @@ export function downloadBasisdokument(
     "timestamp"
   ] = new Date() /*.toLocaleString("de-DE", {timeZone: "Europe/Berlin"})*/;
   basisdokumentObject["metaData"] = metaData;
+  basisdokumentObject["overview"] = overview;
   basisdokumentObject["entries"] = entries;
   basisdokumentObject["sections"] = sectionList;
   basisdokumentObject["judgeHints"] = hints;

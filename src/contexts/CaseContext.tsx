@@ -11,6 +11,7 @@ import {
   IHighlightedEntry,
   IMetaData,
   IndividualEntrySortingEntry,
+  IOverview,
   UserRole,
 } from "../types";
 import { useSection } from "./SectionContext";
@@ -22,6 +23,8 @@ interface ICaseContext {
   setCaseId: Dispatch<SetStateAction<string>>;
   metaData: IMetaData;
   setMetaData: Dispatch<SetStateAction<IMetaData>>;
+  overview: IOverview;
+  setOverview: Dispatch<SetStateAction<IOverview>>;
   entries: IEntry[];
   setEntries: Dispatch<SetStateAction<IEntry[]>>;
   groupedEntries: { [key: string]: { [key: string]: IEntry[] } };
@@ -71,6 +74,10 @@ export const CaseProvider: React.FC<CaseProviderProps> = ({ children }) => {
   const [fileId, setFileId] = useState<string>("");
   const [caseId, setCaseId] = useState<string>("");
   const [metaData, setMetaData] = useState<IMetaData>({
+    plaintiff: "",
+    defendant: "",
+  });
+  const [overview, setOverview] = useState<IOverview>({
     plaintiff: "",
     defendant: "",
   });
@@ -184,6 +191,8 @@ export const CaseProvider: React.FC<CaseProviderProps> = ({ children }) => {
         setCurrentVersion,
         metaData,
         setMetaData,
+        overview,
+        setOverview,
         entries,
         setEntries,
         groupedEntries,
