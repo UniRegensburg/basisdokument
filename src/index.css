@@ -5,6 +5,7 @@
 @font-face {
   font-family: 'Manrope';
   src: url('../src/fonts/Manrope-VariableFont_wght.ttf') format('truetype');
+  /* src: url('../src/fonts/Manrope-ExtraLight.woff2') format('woff2'); */
 }
 
 input[type="file"] {
