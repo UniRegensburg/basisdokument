@@ -2,11 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
+
 @font-face {
   font-family: 'Manrope';
-  src: url('../src/fonts/Manrope-VariableFont_wght.ttf') format('truetype');
-  /* src: url('../src/fonts/Manrope-ExtraLight.woff2') format('woff2'); */
+  src: url('../src/fonts/Manrope-ExtraLight.eot'),
+       url('../src/fonts/Manrope-VariableFont_wght.ttf') format('truetype'),
+       url('../src/fonts/Manrope-ExtraLight.woff2') format('woff2'),
+       url('../src/fonts/Manrope-ExtraLight.woff') format('woff'),
+       url('../src/fonts/Manrope-ExtraLight.ttf') format('truetype'),
+       url('../src/fonts/Manrope-ExtraLight.svg#Manrope-ExtraLight') format('svg');
+  font-weight: 200;
+  font-style: normal;
 }
+
+/* @font-face {
+  font-family: 'Manrope';
+  src: url('../src/fonts/Manrope-VariableFont_wght.ttf') format('truetype');
+} */
 
 input[type="file"] {
   display: none;
