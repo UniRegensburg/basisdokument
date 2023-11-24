@@ -27,6 +27,7 @@ import { themeData } from "../../themes/theme-data";
 import Cookies from "js-cookie";
 import cx from "classnames";
 import { UserRole } from "../../types";
+import { useEvidence } from "../../contexts/EvidenceContext";
 
 export const DocumentButton = () => {
   const { user } = useUser();
@@ -45,6 +46,13 @@ export const DocumentButton = () => {
     highlightedEntries,
   } = useCase();
   const { sectionList, individualSorting } = useSection();
+  const {
+    evidenceList,
+    evidenceIdsPlaintiff,
+    evidenceIdsDefendant,
+    plaintiffFileVolume,
+    defendantFileVolume,
+  } = useEvidence();
   const { versionHistory, colorSelection, selectedTheme, setSelectedTheme } =
     useHeaderContext();
   const { hints } = useHints();
@@ -66,11 +74,18 @@ export const DocumentButton = () => {
         metaData,
         entries,
         sectionList,
+        evidenceList,
+        evidenceIdsPlaintiff,
+        evidenceIdsDefendant,
+        plaintiffFileVolume,
+        defendantFileVolume,
         hints,
         undefined, //coverPDF
         undefined, //otherAuthor
         false, //download new entries additionally
-        undefined //regard
+        false, //download evidences in additional list
+        undefined, //regard
+        false //download attachments by default
       );
     }, 100);
     setTimeout(() => {

@@ -10,8 +10,13 @@ import { EntryList } from "./entry";
 import { JudgeDiscussion } from "./JudgeDiscussion";
 import { MetaData } from "./metadata/MetaData";
 import { SectionHeader } from "./section-header/SectionHeader";
+import { MetaDataHeader } from "./metadata/MetaDataHeader";
+import { useState } from "react";
 
 export const Discussion = () => {
+  const [isBodyOpenPlaintiff, setIsBodyOpenPlaintiff] = useState<boolean>(true);
+  const [isBodyOpenDefendant, setIsBodyOpenDefendant] = useState<boolean>(true);
+
   const { groupedEntries } = useCase();
   const { sectionList, individualSorting } = useSection();
   const { user } = useUser();
@@ -26,7 +31,7 @@ export const Discussion = () => {
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="bg-offWhite h-full overflow-y-scroll py-28 px-4 space-y-4 scroll-smooth">
+      <div className="bg-offWhite h-full overflow-y-scroll py-8 px-4 space-y-4 scroll-smooth">
         <div className="max-w-[1500px] m-auto">
           {highlightElementsWithSpecificVersion ? (
             <div className="flex justify-center z-[30] relative">
@@ -48,9 +53,25 @@ export const Discussion = () => {
               </div>
             </div>
           ) : null}
-          <div className="grid grid-cols-2 gap-6 mb-16 ml-[40px]">
-            <MetaData owner={UserRole.Plaintiff} />
-            <MetaData owner={UserRole.Defendant} />
+          <div className="grid grid-cols-2 gap-6 ml-[40px]">
+            <MetaDataHeader
+              owner={UserRole.Plaintiff}
+              isBodyOpen={isBodyOpenPlaintiff}
+              setIsBodyOpen={setIsBodyOpenPlaintiff}
+            />
+            <MetaDataHeader
+              owner={UserRole.Defendant}
+              isBodyOpen={isBodyOpenDefendant}
+              setIsBodyOpen={setIsBodyOpenDefendant}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-6 ml-[40px] mt-4">
+            {isBodyOpenPlaintiff ? (
+              <MetaData owner={UserRole.Plaintiff} />
+            ) : (
+              <div></div>
+            )}
+            {isBodyOpenDefendant && <MetaData owner={UserRole.Defendant} />}
           </div>
           {selectedSorting === Sorting.Privat && showEntrySorting ? (
             <JudgeDiscussion />

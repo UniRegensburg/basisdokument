@@ -2,7 +2,7 @@ import cx from "classnames";
 import { ContentState, convertToRaw, EditorState } from "draft-js";
 import draftToHtml from "draftjs-to-html";
 import htmlToDraft from "html-to-draftjs";
-import { FloppyDisk, PencilSimple, X } from "phosphor-react";
+import { FloppyDisk, ImageSquare, PencilSimple, X } from "phosphor-react";
 import { useEffect, useRef, useState } from "react";
 import { Editor } from "react-draft-wysiwyg";
 import { useCase, useHeaderContext } from "../../contexts";
@@ -12,6 +12,8 @@ import { IEvidence, ViewMode } from "../../types";
 import { Button } from "../Button";
 import { ExpandButton } from "./ExpandButton";
 import { EvidencesPopup } from "./EvidencePopup";
+import { ImageViewerPopup } from "./ImageViewerPopup";
+import { useEvidence } from "../../contexts/EvidenceContext";
 
 const toolbarOptions = {
   options: ["blockType", "inline", "list", "textAlign"],
@@ -36,17 +38,26 @@ const toolbarOptions = {
 
 interface EntryBodyProps {
   entryId?: string;
+  caveatOfProof: boolean;
   isPlaintiff: boolean;
   isExpanded: boolean;
   setIsExpanded: () => void;
   onAbort: (plainText: string, rawHtml: string) => void;
-  onSave: (plainText: string, rawHtml: string, evidences: IEvidence[]) => void;
+  onSave: (
+    plainText: string,
+    rawHtml: string,
+    evidences: IEvidence[],
+    caveatOfProof: boolean,
+    plaintiffVolume: number,
+    defendantVolume: number
+  ) => void;
   defaultContent?: string;
   evidences: IEvidence[];
 }
 
 export const EntryForm: React.FC<EntryBodyProps> = ({
   entryId,
+  caveatOfProof,
   isPlaintiff,
   isExpanded,
   setIsExpanded,
@@ -55,8 +66,19 @@ export const EntryForm: React.FC<EntryBodyProps> = ({
   defaultContent,
   evidences,
 }) => {
-  const [entryEvidences, setEntryEvidences] = useState<IEvidence[]>(evidences);
-  const [backupEvidences, setBackupEvidences] = useState<IEvidence[]>();
+  const { plaintiffFileVolume, defendantFileVolume } = useEvidence();
+  const [currCaveatOfProof, setCaveatOfProof] =
+    useState<boolean>(caveatOfProof);
+
+  //evidences from evidencePopup -> to save at onSave if there is no cancellation
+  const [evidencesToSave, setEvidencesToSave] =
+    useState<IEvidence[]>(evidences);
+  //fileVolumes from evidencePopup -> to save at onSave if there is no cancellation
+  const [plaintiffFileVolumeToSave, setPlaintiffFileVolumeToSave] =
+    useState<number>(plaintiffFileVolume);
+  const [defendantFileVolumeToSave, setDefendantFileVolumeToSave] =
+    useState<number>(defendantFileVolume);
+
   const [hidePlaceholder, setHidePlaceholder] = useState<boolean>(false);
   const [evidencePopupVisible, setEvidencePopupVisible] =
     useState<boolean>(false);
@@ -70,6 +92,12 @@ export const EntryForm: React.FC<EntryBodyProps> = ({
 
     return EditorState.createWithContent(contentState);
   });
+
+  const [imagePopupFilename, setImagePopupFilename] = useState<string>("");
+  const [imagePopupData, setImagePopupData] = useState<string>("");
+  const [imagePopupAttachment, setImagePopupAttachment] = useState<string>("");
+  const [imagePopupTitle, setImagePopupTitle] = useState<string>("");
+  const [imagePopupVisible, setImagePopupVisible] = useState<boolean>(false);
 
   const { selectedTheme } = useHeaderContext();
   const { view } = useView();
@@ -92,6 +120,19 @@ export const EntryForm: React.FC<EntryBodyProps> = ({
     // Focus the editor when the component is mounted.
     editorRef.current?.focusEditor();
   }, []);
+
+  const showImage = (
+    filedata: string,
+    filename: string,
+    attId: string,
+    title: string
+  ) => {
+    setImagePopupVisible(!imagePopupVisible);
+    setImagePopupData(filedata);
+    setImagePopupAttachment(attId);
+    setImagePopupFilename(filename);
+    setImagePopupTitle(title);
+  };
 
   return (
     <>
@@ -140,37 +181,61 @@ export const EntryForm: React.FC<EntryBodyProps> = ({
           }
         />
         <div className="flex border-t border-lightGrey rounded-b-lg px-3 py-2 items-center gap-2 justify-between">
-          {entryEvidences.length <= 0 ? (
+          {evidencesToSave && evidencesToSave.length <= 0 ? (
             <div
               className="flex flex-col gap-2 items-center cursor-pointer"
               onClick={(e) => {
                 setEvidencePopupVisible(true);
-                setBackupEvidences([...entryEvidences]);
                 e.stopPropagation();
               }}>
               <span className="italic">Keine Beweise</span>
             </div>
           ) : (
             <div className="flex flex-col gap-1">
-              <span className="ml-1 font-bold">{evidences.length === 1 ? "Beweis:" : "Beweise:"}</span>
+              <span className="ml-1 font-bold">
+                {(evidences.length === 1 ? "Beweis" : "Beweise") +
+                  (currCaveatOfProof
+                    ? " unter Verwahrung gegen die Beweislast"
+                    : "") +
+                  ":"}
+              </span>
               <div className="flex flex-col flex-wrap gap-1">
-                {entryEvidences.map((evidence, index) => (
-                  <div className="flex flex-row items-center px-2" key={index}>
-                    <div className="flex flex-row gap-2">
-                      <span className="w-4">{index + 1 + "."}</span>
-                      {evidence.hasAttachment ? (
-                        <span className="break-words font-medium">
-                          {evidence.name}
-                          <b> als Anlage {evidence.attachmentId}</b>
-                        </span>
-                      ) : (
-                        <span className="break-words font-medium">
-                          {evidence.name}
-                        </span>
-                      )}
+                {evidencesToSave &&
+                  evidencesToSave.map((evidence, index) => (
+                    <div
+                      className="flex flex-row items-center px-1"
+                      key={index}>
+                      <div className="flex flex-row gap-2">
+                        {evidencesToSave.length !== 1 && (
+                          <span className="w-4">{index + 1 + "."}</span>
+                        )}
+                        {evidence.hasAttachment ? (
+                          <span className="break-words font-medium">
+                            {evidence.name}
+                            <b> als Anlage {evidence.attachmentId}</b>
+                          </span>
+                        ) : (
+                          <span className="break-words font-medium">
+                            {evidence.name}
+                          </span>
+                        )}
+                        {evidence.hasImageFile && (
+                          <ImageSquare
+                            size={20}
+                            className="text-mediumGrey hover:text-black"
+                            onClick={() => {
+                              showImage(
+                                evidence.imageFile!,
+                                evidence.imageFilename!,
+                                evidence.attachmentId!,
+                                evidence.name
+                              );
+                            }}
+                          />
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             </div>
           )}
@@ -178,7 +243,6 @@ export const EntryForm: React.FC<EntryBodyProps> = ({
             icon={<PencilSimple size={20} />}
             onClick={() => {
               setEvidencePopupVisible(true);
-              setBackupEvidences([...entryEvidences]);
             }}
             size="sm"
             bgColor="bg-offWhite hover:bg-lightGrey"
@@ -207,8 +271,14 @@ export const EntryForm: React.FC<EntryBodyProps> = ({
               const newHtml = draftToHtml(
                 convertToRaw(editorState.getCurrentContent())
               );
-
-              onSave(plainText, newHtml, entryEvidences);
+              onSave(
+                plainText,
+                newHtml,
+                evidencesToSave,
+                currCaveatOfProof,
+                plaintiffFileVolumeToSave,
+                defendantFileVolumeToSave
+              );
             }}
             size="sm"
             bgColor="bg-lightGreen hover:bg-darkGreen"
@@ -219,12 +289,24 @@ export const EntryForm: React.FC<EntryBodyProps> = ({
       </div>
       <EvidencesPopup
         entryId={entryId}
+        caveatOfProof={currCaveatOfProof}
+        setCaveatOfProof={setCaveatOfProof}
         isVisible={evidencePopupVisible}
         setIsVisible={setEvidencePopupVisible}
         isPlaintiff={isPlaintiff}
-        evidences={entryEvidences}
-        backupEvidences={backupEvidences}
-        setEvidences={setEntryEvidences}></EvidencesPopup>
+        evidences={evidencesToSave}
+        setEvidencesToSave={setEvidencesToSave}
+        setPlaintiffFileVolumeToSave={setPlaintiffFileVolumeToSave}
+        setDefendantFileVolumeToSave={
+          setDefendantFileVolumeToSave
+        }></EvidencesPopup>
+      <ImageViewerPopup
+        isVisible={imagePopupVisible}
+        filedata={imagePopupData}
+        filename={imagePopupFilename}
+        title={imagePopupTitle}
+        attachmentId={imagePopupAttachment}
+        setIsVisible={setImagePopupVisible}></ImageViewerPopup>
     </>
   );
 };

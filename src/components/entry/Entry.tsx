@@ -46,6 +46,8 @@ import { useView } from "../../contexts/ViewContext";
 import { getBrowser } from "../../util/get-browser";
 import { AssociationsPopup } from "../AssociationsPopup";
 import { getEntryById } from "../../contexts/CaseContext";
+import { getEvidenceIds, getEvidences } from "../../util/get-evidences";
+import { useEvidence } from "../../contexts/EvidenceContext";
 
 interface EntryProps {
   entry: IEntry;
@@ -95,6 +97,13 @@ export const Entry: React.FC<EntryProps> = ({
   const { setShowNotePopup, setAssociatedEntryIdNote } = useNotes();
   const { setShowJudgeHintPopup, setAssociatedEntryIdHint } = useHints();
   const { view } = useView();
+  const {
+    evidenceList,
+    updateEvidenceList,
+    removeEvidencesWithoutReferences,
+    setPlaintiffFileVolume,
+    setDefendantFileVolume,
+  } = useEvidence();
 
   const versionTimestamp = versionHistory[entry.version - 1].timestamp;
 
@@ -215,30 +224,30 @@ export const Entry: React.FC<EntryProps> = ({
     sectionId: string
   ) => {
     deleteBookmarkByReference(entryId);
-    setEntries((prevEntries) =>
-      prevEntries
-        .filter((entry) => entry.id !== entryId)
-        .map((entry, index) => {
-          // Only update entries that were added in the current version and
-          // are contained withing the specified section
-          const isCurrentVersion = entry.version === currentVersion;
-          const isInSection = entry.sectionId === sectionId;
+    let prevEntries = entries
+      .filter((entry) => entry.id !== entryId)
+      .map((entry, index) => {
+        // Only update entries that were added in the current version and
+        // are contained withing the specified section
+        const isCurrentVersion = entry.version === currentVersion;
+        const isInSection = entry.sectionId === sectionId;
 
-          if (isCurrentVersion && isInSection) {
-            const newEntryCode = entry.entryCode.split("-");
-            if (
-              Number(newEntryCode[newEntryCode.length - 1]) >
-              Number(entryCode.split("-")[newEntryCode.length - 1])
-            ) {
-              newEntryCode[newEntryCode.length - 1] = String(
-                Number(newEntryCode[newEntryCode.length - 1]) - 1
-              );
-              entry.entryCode = newEntryCode.join("-");
-            }
+        if (isCurrentVersion && isInSection) {
+          const newEntryCode = entry.entryCode.split("-");
+          if (
+            Number(newEntryCode[newEntryCode.length - 1]) >
+            Number(entryCode.split("-")[newEntryCode.length - 1])
+          ) {
+            newEntryCode[newEntryCode.length - 1] = String(
+              Number(newEntryCode[newEntryCode.length - 1]) - 1
+            );
+            entry.entryCode = newEntryCode.join("-");
           }
-          return entry;
-        })
-    );
+        }
+        return entry;
+      });
+    removeEvidencesWithoutReferences(prevEntries);
+    setEntries(prevEntries);
 
     setIndividualEntrySorting((prevEntrySorting) => {
       let newEntrySorting: { [key: string]: IndividualEntrySortingEntry[] } = {
@@ -271,13 +280,15 @@ export const Entry: React.FC<EntryProps> = ({
   const updateEntry = (
     plainText: string,
     rawHtml: string,
-    evidences: IEvidence[]
+    evidences: IEvidence[],
+    caveatOfProof: boolean
   ) => {
     if (plainText.length === 0) {
       toast("Bitte geben Sie einen Text ein.", { type: "error" });
       return;
     }
-
+    updateEvidenceList(evidences, entries);
+    const newEvidenceIds = getEvidenceIds(evidences);
     setIsEditing(false);
     setEntries((oldEntries) => {
       const newEntries = [...oldEntries];
@@ -286,7 +297,9 @@ export const Entry: React.FC<EntryProps> = ({
       );
       newEntries[entryIndex].text = rawHtml;
       newEntries[entryIndex].author = authorName || entry.author;
-      newEntries[entryIndex].evidences = evidences;
+      newEntries[entryIndex].evidenceIds = newEvidenceIds;
+      newEntries[entryIndex].caveatOfProof = caveatOfProof;
+      removeEvidencesWithoutReferences(newEntries);
       return newEntries;
     });
 
@@ -309,7 +322,6 @@ export const Entry: React.FC<EntryProps> = ({
               hideEntriesHighlighter &&
               getCurrentTool.id === Tool.Cursor),
           "pointer-events-none": isHidden,
-          "mt-6": !shownInPopup && view !== ViewMode.SideBySide,
           "w-1/2": shownInPopup,
         })}>
         <div
@@ -370,7 +382,10 @@ export const Entry: React.FC<EntryProps> = ({
                     }></ArrowSquareOut>
                 </Tooltip>
               </a>
-            ) : null}
+            ) : (
+              //spacing
+              <div className="h-6"></div>
+            )}
             <div
               className={cx("shadow rounded-lg", {
                 "outline outline-2 outline-offset-4 outline-blue-600":
@@ -559,14 +574,16 @@ export const Entry: React.FC<EntryProps> = ({
                     }
                     lowerOpcacityForHighlighters={lowerOpcacityForHighlighters}
                     entryId={entry.id}
+                    caveatOfProof={entry.caveatOfProof}
                     showInPopup={shownInPopup}
-                    evidences={entry.evidences}>
+                    evidences={getEvidences(evidenceList, entry.evidenceIds)}>
                     {entry.text}
                   </EntryBody>
                 )}
                 {isBodyOpen && isEditing && (
                   <EntryForm
                     entryId={entry.id}
+                    caveatOfProof={entry.caveatOfProof}
                     defaultContent={entry.text}
                     isPlaintiff={isPlaintiff}
                     isExpanded={isExpanded}
@@ -577,37 +594,45 @@ export const Entry: React.FC<EntryProps> = ({
                     onSave={(
                       plainText: string,
                       rawHtml: string,
-                      evidences: IEvidence[]
+                      evidences: IEvidence[],
+                      caveatOfProof: boolean,
+                      plaintiffVolume: number,
+                      defendantFileVolume: number
                     ) => {
-                      updateEntry(plainText, rawHtml, evidences);
+                      updateEntry(plainText, rawHtml, evidences, caveatOfProof);
+                      setPlaintiffFileVolume(plaintiffVolume);
+                      setDefendantFileVolume(defendantFileVolume);
                       setIsExpanded(false);
                     }}
-                    evidences={entry.evidences}
+                    evidences={getEvidences(evidenceList, entry.evidenceIds)}
                   />
                 )}
               </div>
             </div>
             {/* Button to add response */}
             {canAddEntry &&
-              !isNewEntryVisible &&
-              !showEntrySorting &&
-              !shownInPopup &&
-              user?.role !== UserRole.Client && (
-                <a
-                  className="inline-block"
-                  href={`#${entry.sectionId}-scroll`}
-                  ref={createAssociatedEntryButton}>
-                  <Button
-                    size="sm"
-                    alternativePadding="mt-2"
-                    bgColor="bg-lightGrey hover:bg-mediumGrey"
-                    textColor="text-darkGrey hover:text-offWhite"
-                    onClick={showNewEntry}
-                    icon={<ArrowBendLeftUp weight="bold" size={18} />}>
-                    Auf diesen Beitrag Bezug nehmen
-                  </Button>
-                </a>
-              )}
+            !isNewEntryVisible &&
+            !showEntrySorting &&
+            !shownInPopup &&
+            user?.role !== UserRole.Client ? (
+              <a
+                className="inline-block"
+                href={`#${entry.sectionId}-scroll`}
+                ref={createAssociatedEntryButton}>
+                <Button
+                  size="sm"
+                  alternativePadding="mt-2"
+                  bgColor="bg-lightGrey hover:bg-mediumGrey"
+                  textColor="text-darkGrey hover:text-offWhite"
+                  onClick={showNewEntry}
+                  icon={<ArrowBendLeftUp weight="bold" size={18} />}>
+                  Auf diesen Beitrag Bezug nehmen
+                </Button>
+              </a>
+            ) : (
+              //spacing
+              <div className="h-9"></div>
+            )}
           </div>
           {isNewEntryVisible && (
             <div className={cx(`flex flex-col w-full`)}>

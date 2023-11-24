@@ -14,13 +14,13 @@ export const getEntryCode = (
 export const getEntryCodesForEvidence = (
   entries: IEntry[],
   evidence: IEvidence
-): string[] => {
+): string[] | undefined => {
   const entriesWithEvidenceReference = entries
     // prefilter entries with no evidences
-    .filter((entry) => entry.evidences !== undefined)
+    .filter((entry) => entry.evidenceIds !== undefined)
     // filter entries with evidence
-    .filter((entry) => entry.evidences.indexOf(evidence) !== -1);
-  // return entry codes
+    .filter((entry) => entry.evidenceIds.some((evId) => evId === evidence.id));
+  // return entry codes or empty array
   return entriesWithEvidenceReference.map((entry) =>
     getEntryCode(entries, entry.id)
   );

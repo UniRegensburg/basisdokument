@@ -41,6 +41,7 @@ export interface ISidebar {
 export interface IUser {
   name: string;
   role: UserRole;
+  signature?: JudgeTitle;
 }
 
 export enum ViewMode {
@@ -54,6 +55,20 @@ export enum UserRole {
   Defendant = "Beklagtenpartei",
   Judge = "Richter:in",
   Client = "Mandant:in",
+}
+
+export enum JudgeTitle {
+  Default = "Richter:in",
+  Female = "Richterin",
+  Male = "Richter",
+  Female_LG = "Richterin am Landgericht",
+  Male_LG = "Richter am Landgericht",
+  Female_VLG = "Vorsitzende Richterin am Landgericht",
+  Male_VLG = "Vorsitzender Richter am Landgericht",
+  Female_VPLG = "Vizepräsidentin des Landesgerichts",
+  Male_VPLG = "Vizepräsident des Landgerichts",
+  Female_PLG = "Präsidentin des Landgerichts",
+  Male_PLG = "Präsident des Landgerichts",
 }
 
 export enum Sorting {
@@ -94,7 +109,9 @@ export interface IEntry {
   role: UserRole.Plaintiff | UserRole.Defendant;
   sectionId: string;
   associatedEntry?: string;
-  evidences: IEvidence[];
+  evidences?: IEvidence[];
+  evidenceIds: string[];
+  caveatOfProof: boolean;
 }
 
 export enum IDragItemType {
@@ -169,9 +186,12 @@ export interface IEvidence {
   name: string;
   hasAttachment: boolean;
   version: number;
-  isCurrentEntry: boolean;
+  //isCurrentEntry: boolean;
   role: UserRole;
   tag?: string;
   attachmentId?: string;
   isInEditMode: boolean;
+  hasImageFile: boolean;
+  imageFile?: string;
+  imageFilename?: string;
 }

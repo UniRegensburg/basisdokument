@@ -11,8 +11,8 @@ import { useUser } from "../../contexts/UserContext";
 import { useView } from "../../contexts/ViewContext";
 import { getTheme } from "../../themes/getTheme";
 import {
-  IEvidence,
   IEntry,
+  IEvidence,
   IndividualEntrySortingEntry,
   UserRole,
   ViewMode,
@@ -24,6 +24,8 @@ import { ErrorPopup } from "../ErrorPopup";
 import { Tooltip } from "../Tooltip";
 import { EntryForm } from "./EntryForm";
 import { EntryHeader } from "./EntryHeader";
+import { getEvidenceIds } from "../../util/get-evidences";
+import { useEvidence } from "../../contexts/EvidenceContext";
 
 interface NewEntryProps {
   roleForNewEntry: UserRole.Plaintiff | UserRole.Defendant;
@@ -49,6 +51,8 @@ export const NewEntry: React.FC<NewEntryProps> = ({
   const { currentVersion, entries, setEntries, setIndividualEntrySorting } =
     useCase();
   const { sectionList } = useSection();
+  const { updateEvidenceList, setPlaintiffFileVolume, setDefendantFileVolume } =
+    useEvidence();
 
   const isPlaintiff = roleForNewEntry === UserRole.Plaintiff;
   const entryCodePrefix = isPlaintiff ? "K" : "B";
@@ -57,7 +61,8 @@ export const NewEntry: React.FC<NewEntryProps> = ({
   const createEntry = (
     plainText: string,
     rawHtml: string,
-    evidences: IEvidence[]
+    evidences: IEvidence[],
+    caveatOfProof: boolean
   ) => {
     if (plainText.length === 0) {
       toast("Bitte geben sie einen Text ein.", { type: "error" });
@@ -67,16 +72,21 @@ export const NewEntry: React.FC<NewEntryProps> = ({
     const newEntryCount =
       entries.filter((entry) => entry.sectionId === sectionId).length + 1;
 
+    const newEvidenceIds = getEvidenceIds(evidences);
+
     const entry: IEntry = {
       id: uuidv4(),
+      caveatOfProof: caveatOfProof,
       entryCode: `${entryCodePrefix}-${sectionNumber}-${newEntryCount}`,
       author: authorName || user!.name,
       role: roleForNewEntry,
       sectionId,
       text: rawHtml,
       version: currentVersion,
-      evidences: evidences,
+      evidenceIds: newEvidenceIds,
     };
+
+    updateEvidenceList(evidences, entries);
 
     if (associatedEntry) {
       entry.associatedEntry = associatedEntry;
@@ -217,6 +227,7 @@ export const NewEntry: React.FC<NewEntryProps> = ({
           </EntryHeader>
           {/* Toolbar */}
           <EntryForm
+            caveatOfProof={false}
             isPlaintiff={isPlaintiff}
             isExpanded={isExpanded}
             setIsExpanded={() => {
@@ -225,8 +236,17 @@ export const NewEntry: React.FC<NewEntryProps> = ({
             onAbort={(plainText, rawHtml) => {
               closeNewEntryForm(plainText, rawHtml);
             }}
-            onSave={(plainText, rawHtml, evidences) => {
-              createEntry(plainText, rawHtml, evidences);
+            onSave={(
+              plainText,
+              rawHtml,
+              evidences,
+              caveatOfProof,
+              plaintiffFileVolume,
+              defendantFileVolume
+            ) => {
+              createEntry(plainText, rawHtml, evidences, caveatOfProof);
+              setPlaintiffFileVolume(plaintiffFileVolume);
+              setDefendantFileVolume(defendantFileVolume);
             }}
             evidences={[]}
           />

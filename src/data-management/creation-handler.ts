@@ -20,15 +20,17 @@ export function createBasisdokument(
   basisdokumentObject["metadata"] = { plaintiff: "", defendant: "" };
   basisdokumentObject["entries"] = [];
   basisdokumentObject["sections"] = [];
+  basisdokumentObject["evidences"] = [];
+  basisdokumentObject["evidencesNumPlaintiff"] = [];
+  basisdokumentObject["evidencesNumDefendant"] = [];
+  basisdokumentObject["plaintiffFileVolume"] = 0;
+  basisdokumentObject["defendantFileVolume"] = 0;
   basisdokumentObject["judgeHints"] = [];
   basisdokumentObject["litigiousChecks"] = [];
   return basisdokumentObject;
 }
 
 export function createEditFile(
-  prename: IStateUserInput["prename"],
-  surname: IStateUserInput["surname"],
-  role: IStateUserInput["role"],
   caseId: IStateUserInput["caseId"],
   fileId: string,
   version: number

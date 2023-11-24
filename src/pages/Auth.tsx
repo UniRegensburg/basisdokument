@@ -28,6 +28,8 @@ import {
   updateSortingsIfVersionIsDifferent,
 } from "../data-management/opening-handler";
 import {
+  IEntry,
+  IEvidence,
   IStateUserInput,
   IUser,
   SidebarState,
@@ -41,10 +43,13 @@ import { VersionPopup } from "../components/VersionPopup";
 import { useSidebar } from "../contexts/SidebarContext";
 import { PatchnotesPopup } from "../components/PatchnotesPopup";
 import { ImprintPopup } from "../components/ImprintPopup";
+import { useEvidence } from "../contexts/EvidenceContext";
 
 interface AuthProps {
   setIsAuthenticated: (isAuthenticated: boolean) => void;
 }
+
+//TODO: Evidences richtig zuordnen!!!!!
 
 export const Auth: React.FC<AuthProps> = ({ setIsAuthenticated }) => {
   // States for the form
@@ -67,6 +72,10 @@ export const Auth: React.FC<AuthProps> = ({ setIsAuthenticated }) => {
   const [isReadonly] = useState<boolean>(
     window.location.hostname.includes("mandant")
   );
+  const [isValidBasisdokumentFile, setIsValidBasisdokumentFile] =
+    useState<boolean>(true);
+  const [isValidEditFile, setIsValidEditFile] = useState<boolean>(true);
+  const [isMatchingFiles, setIsMatchingFiles] = useState<boolean>(true);
 
   // Refs
   const basisdokumentFileUploadRef = useRef<HTMLInputElement>(null);
@@ -93,6 +102,13 @@ export const Auth: React.FC<AuthProps> = ({ setIsAuthenticated }) => {
   const { setActiveSidebar } = useSidebar();
   const { showPatchnotesPopup } = usePatchnotes();
   const { showImprintPopup } = useImprint();
+  const {
+    updateEvidenceList,
+    setEvidenceIdsPlaintiff,
+    setEvidenceIdsDefendant,
+    setPlaintiffFileVolume,
+    setDefendantFileVolume,
+  } = useEvidence();
 
   // Set React states when user enters/changes text input fields
   const onChangeGivenPrename = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -140,77 +156,18 @@ export const Auth: React.FC<AuthProps> = ({ setIsAuthenticated }) => {
 
   // The onboarding should only be displayed when if the user opens a basisdokument for the first time.
   // It is still possible to access the onboarding via the ?-icon in the header.
+  // The onboarding is also not shown with 'mandantendomain'
   const checkOnboardingShownBefore = () => {
-    if (Cookies.get("onboarding") === undefined) {
+    if (
+      Cookies.get("onboarding") === undefined &&
+      usage !== UsageMode.Readonly
+    ) {
       Cookies.set("onboarding", "true");
       setIsOnboardingVisible(true);
     }
   };
 
-  const validateUserInput = () => {
-    // Before checking every user input we set the validation state to true.
-    let inputIsValid: boolean = true;
-
-    // check if file exists and validate
-    if (usage === UsageMode.Open || usage === UsageMode.Readonly) {
-      if (
-        !basisdokumentFilename.endsWith(".txt") ||
-        typeof basisdokumentFile !== "string" ||
-        !basisdokumentFile
-      ) {
-        setErrorText(
-          "Bitte laden Sie eine valide Basisdokumentdatei (.txt) hoch!"
-        );
-        inputIsValid = false;
-      } else {
-        if (jsonToObject(basisdokumentFile).fileType !== "basisdokument") {
-          setErrorText(
-            "Bitte laden Sie eine valide Basisdokumentdatei (.txt) hoch!"
-          );
-          inputIsValid = false;
-        }
-      }
-      if (editFile) {
-        if (!editFilename.endsWith(".txt") || typeof editFile !== "string") {
-          setErrorText(
-            "Bitte laden Sie eine valide Bearbeitungsdatei (.txt) hoch!"
-          );
-          inputIsValid = false;
-        } else {
-          if (jsonToObject(editFile).fileType !== "editFile") {
-            setErrorText(
-              "Bitte laden Sie eine valide Bearbeitungsdatei (.txt) hoch!"
-            );
-            inputIsValid = false;
-          }
-        }
-      }
-      if (basisdokumentFile && editFile) {
-        if (
-          jsonToObject(basisdokumentFile).fileId !==
-          jsonToObject(editFile).fileId
-        ) {
-          setErrorText(
-            "Die hochgeladene Bearbeitungsdatei passt nicht zum hochgeladenen Basisdokument."
-          );
-          inputIsValid = false;
-        }
-      }
-    }
-
-    if ((prename === "" || surname === "") && usage !== UsageMode.Readonly) {
-      setErrorText(
-        "Bitte geben Sie sowohl Ihren Vornamen als auch einen Nachnamen an!"
-      );
-      inputIsValid = false;
-    }
-    if (!role) {
-      setErrorText(
-        "Bitte spezifizieren Sie, ob Sie das Basisdokument als Klagepartei, Beklagtenpartei oder Richter:in bearbeiten möchten!"
-      );
-      inputIsValid = false;
-    }
-
+  const isValidUsageMode = () => {
     if (
       usage !== UsageMode.Open &&
       usage !== UsageMode.Create &&
@@ -219,89 +176,245 @@ export const Auth: React.FC<AuthProps> = ({ setIsAuthenticated }) => {
       setErrorText(
         "Bitte spezifizieren Sie, ob Sie ein Basisdokument öffnen, erstellen oder einsehen möchten!"
       );
-      inputIsValid = false;
+      return false;
     }
+    return true;
+  };
 
-    if (inputIsValid === true) {
-      let basisdokumentObject, editFileObject;
+  const isValidRole = () => {
+    if (!role) {
+      setErrorText(
+        "Bitte spezifizieren Sie, ob Sie das Basisdokument als Klagepartei, Beklagtenpartei oder Richter:in bearbeiten möchten!"
+      );
+      return false;
+    }
+    return true;
+  };
 
+  const isValidNames = () => {
+    if ((prename === "" || surname === "") && usage !== UsageMode.Readonly) {
+      setErrorText(
+        "Bitte geben Sie sowohl Ihren Vornamen als auch einen Nachnamen an!"
+      );
+      return false;
+    }
+    return true;
+  };
+
+  const isValidFiles = () => {
+    // check if basisdokument file exists and has valid file format
+    if (usage === UsageMode.Open || usage === UsageMode.Readonly) {
       if (
-        (usage === UsageMode.Open || usage === UsageMode.Readonly) &&
-        typeof basisdokumentFile == "string"
+        !basisdokumentFilename.endsWith(".txt") ||
+        typeof basisdokumentFile !== "string" ||
+        !basisdokumentFile
       ) {
-        basisdokumentObject = openBasisdokument(
-          basisdokumentFile,
-          newVersionMode,
-          prename,
-          surname,
-          role
+        setIsValidBasisdokumentFile(false);
+        setErrorText(
+          "Bitte laden Sie eine valide Basisdokumentdatei (.txt) hoch!"
         );
-        if (editFile) {
-          editFileObject = openEditFile(
-            basisdokumentFile,
-            editFile,
-            newVersionMode
+        return false;
+      } else {
+        if (jsonToObject(basisdokumentFile).fileType !== "basisdokument") {
+          setIsValidBasisdokumentFile(false);
+          setErrorText(
+            "Bitte laden Sie eine valide Basisdokumentdatei (.txt) hoch!"
           );
-        } else {
-          editFileObject = createEditFile(
-            prename,
-            surname,
-            role,
-            basisdokumentObject.caseId,
-            basisdokumentObject.fileId,
-            basisdokumentObject.currentVersion
-          );
-
-          editFileObject = updateSortingsIfVersionIsDifferent(
-            basisdokumentObject,
-            editFileObject
-          );
+          return false;
         }
       }
+      // check if edit file exists and has valid file format
+      if (editFile) {
+        if (!editFilename.endsWith(".txt") || typeof editFile !== "string") {
+          setIsValidEditFile(false);
+          setErrorText(
+            "Bitte laden Sie eine valide Bearbeitungsdatei (.txt) hoch!"
+          );
+          return false;
+        } else {
+          if (jsonToObject(editFile).fileType !== "editFile") {
+            setIsValidEditFile(false);
+            setErrorText(
+              "Bitte laden Sie eine valide Bearbeitungsdatei (.txt) hoch!"
+            );
+            return false;
+          }
+        }
+      }
+      // check if basisdokument and edit files are matching
+      if (basisdokumentFile && editFile) {
+        const basisdokId = jsonToObject(basisdokumentFile).fileId;
+        const editId = jsonToObject(editFile).fileId;
+        if (
+          basisdokId &&
+          basisdokId.length > 0 &&
+          editId &&
+          editId.length > 0 &&
+          basisdokId !== editId
+        ) {
+          setIsMatchingFiles(false);
+          setErrorText(
+            "Die hochgeladene Bearbeitungsdatei passt nicht zum hochgeladenen Basisdokument."
+          );
+          return false;
+        }
+      }
+    }
+    return true;
+  };
 
-      if (usage === UsageMode.Create) {
-        const fileId = uuidv4();
-        setFileId(fileId);
-        basisdokumentObject = createBasisdokument(
-          prename,
-          surname,
-          role,
-          caseId,
-          fileId
+  const validateUserInputAndOpen = () => {
+    if (!isValidUsageMode()) return;
+    if (!isValidRole()) return;
+    if (!isValidNames()) return;
+    if (!isValidFiles()) return;
+
+    let basisdokumentObject, editFileObject;
+
+    if (
+      (usage === UsageMode.Open || usage === UsageMode.Readonly) &&
+      typeof basisdokumentFile == "string"
+    ) {
+      basisdokumentObject = openBasisdokument(
+        basisdokumentFile,
+        newVersionMode,
+        prename,
+        surname,
+        role
+      );
+      if (editFile) {
+        editFileObject = openEditFile(
+          basisdokumentFile,
+          editFile,
+          newVersionMode
         );
+      } else {
         editFileObject = createEditFile(
-          prename,
-          surname,
-          role,
-          caseId,
-          fileId,
-          1
+          basisdokumentObject.caseId,
+          basisdokumentObject.fileId,
+          basisdokumentObject.currentVersion
         );
-        toast("Ihr Basisdokument wurde erfolgreich erstellt!");
+
+        editFileObject = updateSortingsIfVersionIsDifferent(
+          basisdokumentObject,
+          editFileObject
+        );
       }
 
-      const user: IUser = {
-        name: `${prename} ${surname}`,
-        role: role!,
-      };
-
-      setUser(user);
-      setContextFromBasisdokument(basisdokumentObject);
-      setContextFromEditFile(editFileObject);
-      checkOnboardingShownBefore();
-      setIsAuthenticated(true);
+      // ensure compatibility with older releases (matching fileId feature)
+      const basisdokFileId = basisdokumentObject["fileId"];
+      const editFileId = editFileObject["fileId"];
+      const basisdokHasId = basisdokFileId && basisdokFileId.length > 0;
+      const editHasId = editFileId && editFileId.length > 0;
+      if (!basisdokHasId && !editHasId) {
+        const id = uuidv4();
+        basisdokumentObject["fileId"] = id;
+        editFileObject["fileId"] = id;
+        setFileId(id);
+      } else if (basisdokHasId && !editHasId) {
+        editFileObject["fileId"] = basisdokFileId;
+        setFileId(basisdokFileId);
+      } else if (!basisdokHasId && editHasId) {
+        basisdokumentObject["fileId"] = editFileId;
+        setFileId(editFileId);
+      }
     }
+
+    if (usage === UsageMode.Create) {
+      const fileId = uuidv4();
+      setFileId(fileId);
+      basisdokumentObject = createBasisdokument(
+        prename,
+        surname,
+        role,
+        caseId,
+        fileId
+      );
+      editFileObject = createEditFile(caseId, fileId, 1);
+      toast("Ihr Basisdokument wurde erfolgreich erstellt!");
+    }
+
+    const user: IUser = {
+      name: `${prename} ${surname}`,
+      role: role!,
+    };
+
+    setUser(user);
+    setContextFromBasisdokument(basisdokumentObject);
+    setContextFromEditFile(editFileObject);
+    checkOnboardingShownBefore();
+    setIsAuthenticated(true);
   };
 
   // The imported data from the files is then merged into a React state (context provider).
   const setContextFromBasisdokument = (basisdokument: any) => {
     setVersionHistory(basisdokument.versions);
-    setEntries(basisdokument.entries);
+    //if evidences are already in own list
+    if (basisdokument.evidences) {
+      setEntries(basisdokument.entries);
+      updateEvidenceList(basisdokument.evidences, []);
+      setEvidenceIdsPlaintiff(basisdokument.evidencesNumPlaintiff);
+      setEvidenceIdsDefendant(basisdokument.evidencesNumDefendant);
+      if (basisdokument.plaintiffFileVolume) {
+        setPlaintiffFileVolume(basisdokument.plaintiffFileVolume);
+      } else {
+        setDefendantFileVolume(0);
+      }
+      if (basisdokument.defendantFileVolume) {
+        setDefendantFileVolume(basisdokument.defendantFileVolume);
+      } else {
+        setDefendantFileVolume(0);
+      }
+    } else {
+      //if evidences are not already in own list
+      let newEvidenceList: IEvidence[] = [];
+      let updatedEntries: IEntry[] = [];
+      let oldEntries = basisdokument.entries;
+      for (let i = 0; i < oldEntries.length; i++) {
+        if (oldEntries[i].evidences) {
+          let updatedEntry: IEntry = oldEntries[i];
+          let newEvIds: string[] = [];
+          for (let j = 0; j < oldEntries[i].evidences.length; j++) {
+            newEvIds.push(oldEntries[i].evidences[j].id);
+            //check if evidence is already in new evidence list
+            if (
+              !newEvidenceList.find(
+                (ev) => ev.id === oldEntries[i].evidences[j].id
+              )
+            ) {
+              newEvidenceList.push(oldEntries[i].evidences[j]);
+            }
+          }
+          updatedEntry["evidenceIds"] = newEvIds;
+          //delete outdated property after getting all data correctly
+          delete updatedEntry.evidences;
+          updatedEntries.push(updatedEntry);
+        } else {
+          updatedEntries.push(oldEntries[i]);
+        }
+      }
+      setEntries(updatedEntries);
+      updateEvidenceList(newEvidenceList, updatedEntries);
+      //set plaintiff/defendant arrays
+      let newPlaintiffArr: string[] = [];
+      let newDefendantArr: string[] = [];
+      for (let i = 0; i < newEvidenceList.length; i++) {
+        if (newEvidenceList[i].hasAttachment) {
+          let newIndex = Number(newEvidenceList[i].attachmentId?.slice(2));
+          newEvidenceList[i].attachmentId?.includes("K")
+            ? newPlaintiffArr.splice(newIndex, 0, newEvidenceList[i].id)
+            : newDefendantArr.splice(newIndex, 0, newEvidenceList[i].id);
+        }
+      }
+      setEvidenceIdsPlaintiff(newPlaintiffArr);
+      setEvidenceIdsDefendant(newDefendantArr);
+    }
     setSectionList(basisdokument.sections);
     setHints(basisdokument.judgeHints);
     setMetaData(basisdokument.metaData);
     setCurrentVersion(basisdokument.currentVersion);
     setCaseIdContext(basisdokument.caseId);
+    setFileId(basisdokument.fileId);
   };
 
   const setContextFromEditFile = (editFile: any) => {
@@ -312,6 +425,7 @@ export const Auth: React.FC<AuthProps> = ({ setIsAuthenticated }) => {
     setIndividualSorting(editFile.individualSorting);
     setHighlightedEntries(editFile.highlightedEntries);
     setIndividualEntrySorting(editFile.individualEntrySorting);
+    setFileId(editFile.fileId);
   };
 
   const setReadonly = () => {
@@ -359,68 +473,72 @@ export const Auth: React.FC<AuthProps> = ({ setIsAuthenticated }) => {
           </p>
         )}
 
-        <div>
-          <div className="flex flex-row w-full justify-between font-light">
-            <p>
-              Ich möchte ein Basisdokument:{" "}
-              <span className="text-darkRed">*</span>
-            </p>
-            <p>
-              Oder:{" "}
-              <a href="https://mandant.parteivortrag.de/">
-                Ich bin Mandant:in.
-              </a>
-            </p>
+        {!isReadonly && (
+          <div>
+            <div className="flex flex-row w-full justify-between font-light">
+              <p>
+                Ich möchte ein Basisdokument:{" "}
+                <span className="text-darkRed">*</span>
+              </p>
+              <p>
+                Oder:{" "}
+                <a href="https://mandant.parteivortrag.de/">
+                  Ich bin Mandant:in.
+                </a>
+              </p>
+            </div>
+
+            <div className="flex flex-row w-auto mt-4 gap-4">
+              {!isReadonly && (
+                <>
+                  <button
+                    onClick={() => {
+                      if (usage !== UsageMode.Open) {
+                        setErrorText("");
+                      }
+                      setUsage(UsageMode.Open);
+                    }}
+                    className={cx(
+                      "flex items-center justify-center w-[100px] h-[50px] font-bold rounded-md bg-offWhite hover:bg-lightGrey hover:cursor-pointer",
+                      {
+                        "border-2 border-darkGrey": usage === UsageMode.Open,
+                      }
+                    )}>
+                    Öffnen
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (usage !== UsageMode.Create) {
+                        setErrorText("");
+                      }
+                      setUsage(UsageMode.Create);
+                    }}
+                    className={cx(
+                      "flex items-center justify-center w-[100px] h-[50px] font-bold rounded-md bg-offWhite hover:bg-lightGrey hover:cursor-pointer",
+                      {
+                        "border-2 border-darkGrey": usage === UsageMode.Create,
+                      }
+                    )}>
+                    Erstellen
+                  </button>
+                  <button
+                    onClick={() => {
+                      setReadonly();
+                    }}
+                    className={cx(
+                      "flex items-center justify-center w-[100px] h-[50px] font-bold rounded-md bg-offWhite hover:bg-lightGrey hover:cursor-pointer",
+                      {
+                        "border-2 border-darkGrey":
+                          usage === UsageMode.Readonly,
+                      }
+                    )}>
+                    Einsehen
+                  </button>
+                </>
+              )}
+            </div>
           </div>
-          <div className="flex flex-row w-auto mt-4 gap-4">
-            {!isReadonly && (
-              <>
-                <button
-                  onClick={() => {
-                    if (usage !== UsageMode.Open) {
-                      setErrorText("");
-                    }
-                    setUsage(UsageMode.Open);
-                  }}
-                  className={cx(
-                    "flex items-center justify-center w-[100px] h-[50px] font-bold rounded-md bg-offWhite hover:bg-lightGrey hover:cursor-pointer",
-                    {
-                      "border-2 border-darkGrey": usage === UsageMode.Open,
-                    }
-                  )}>
-                  Öffnen
-                </button>
-                <button
-                  onClick={() => {
-                    if (usage !== UsageMode.Create) {
-                      setErrorText("");
-                    }
-                    setUsage(UsageMode.Create);
-                  }}
-                  className={cx(
-                    "flex items-center justify-center w-[100px] h-[50px] font-bold rounded-md bg-offWhite hover:bg-lightGrey hover:cursor-pointer",
-                    {
-                      "border-2 border-darkGrey": usage === UsageMode.Create,
-                    }
-                  )}>
-                  Erstellen
-                </button>
-                <button
-                  onClick={() => {
-                    setReadonly();
-                  }}
-                  className={cx(
-                    "flex items-center justify-center w-[100px] h-[50px] font-bold rounded-md bg-offWhite hover:bg-lightGrey hover:cursor-pointer",
-                    {
-                      "border-2 border-darkGrey": usage === UsageMode.Readonly,
-                    }
-                  )}>
-                  Einsehen
-                </button>
-              </>
-            )}
-          </div>
-        </div>
+        )}
 
         {usage !== UsageMode.Readonly && (
           <div className="flex gap-8 flex-col">
@@ -510,8 +628,11 @@ export const Auth: React.FC<AuthProps> = ({ setIsAuthenticated }) => {
           <div className="flex flex-col gap-4">
             <div>
               <p className="font-light">
-                Basisdokument-Dateien hochladen:{" "}
-                <span className="text-darkRed">*</span>
+                Basisdokument-
+                {isReadonly || usage === UsageMode.Readonly
+                  ? "Datei"
+                  : "Dateien"}{" "}
+                hochladen: <span className="text-darkRed">*</span>
               </p>
               <div className="flex flex-col items-start w-auto mt-8 mb-8 gap-4">
                 <div className="flex flex-row items-center justify-center gap-2">
@@ -535,10 +656,16 @@ export const Auth: React.FC<AuthProps> = ({ setIsAuthenticated }) => {
                         ref={basisdokumentFileUploadRef}
                         type="file"
                         onChange={handleBasisdokumentFileUploadChange}
+                        accept=".txt"
                       />
                       {basisdokumentFilename}
                       <button
                         onClick={() => {
+                          if (!isMatchingFiles || !isValidBasisdokumentFile) {
+                            setErrorText("");
+                            setIsMatchingFiles(true);
+                            setIsValidBasisdokumentFile(true);
+                          }
                           basisdokumentFileUploadRef?.current?.click();
                         }}
                         className="bg-darkGrey hover:bg-mediumGrey rounded-md pl-2 pr-2 p-1">
@@ -579,10 +706,16 @@ export const Auth: React.FC<AuthProps> = ({ setIsAuthenticated }) => {
                           ref={editFileUploadRef}
                           type="file"
                           onChange={handleEditFileUploadChange}
+                          accept=".txt"
                         />
                         {editFilename}
                         <button
                           onClick={() => {
+                            if (!isMatchingFiles || !isValidEditFile) {
+                              setErrorText("");
+                              setIsMatchingFiles(true);
+                              setIsValidEditFile(true);
+                            }
                             editFileUploadRef?.current?.click();
                           }}
                           className="bg-darkGrey hover:bg-mediumGrey rounded-md pl-2 pr-2 p-1">
@@ -683,7 +816,7 @@ export const Auth: React.FC<AuthProps> = ({ setIsAuthenticated }) => {
         </div>
 
         <div className="flex flew-row items-end justify-between space-y-2">
-          <Button onClick={validateUserInput}>
+          <Button onClick={validateUserInputAndOpen}>
             Basisdokument{" "}
             {usage === UsageMode.Open
               ? "öffnen"
