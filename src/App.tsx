@@ -4,6 +4,7 @@ import "react-toastify/dist/ReactToastify.css";
 import {
   BookmarkProvider,
   CaseProvider,
+  EntryProvider,
   ExportProvider,
   HeaderProvider,
   HintProvider,
@@ -45,27 +46,29 @@ export const App = () => {
               <HeaderProvider>
                 <CaseProvider>
                   <ViewProvider>
-                    <SidebarProvider>
-                      <NoteProvider>
-                        <HintProvider>
-                          <BookmarkProvider>
-                            <ExportProvider>
-                              <PatchnotesProvider>
-                                <ImprintProvider>
-                                  {isAuthenticated ? (
-                                    <Main />
-                                  ) : (
-                                    <Auth
-                                      setIsAuthenticated={setIsAuthenticated}
-                                    />
-                                  )}
-                                </ImprintProvider>
-                              </PatchnotesProvider>
-                            </ExportProvider>
-                          </BookmarkProvider>
-                        </HintProvider>
-                      </NoteProvider>
-                    </SidebarProvider>
+                    <EntryProvider>
+                      <SidebarProvider>
+                        <NoteProvider>
+                          <HintProvider>
+                            <BookmarkProvider>
+                              <ExportProvider>
+                                <PatchnotesProvider>
+                                  <ImprintProvider>
+                                    {isAuthenticated ? (
+                                      <Main />
+                                    ) : (
+                                      <Auth
+                                        setIsAuthenticated={setIsAuthenticated}
+                                      />
+                                    )}
+                                  </ImprintProvider>
+                                </PatchnotesProvider>
+                              </ExportProvider>
+                            </BookmarkProvider>
+                          </HintProvider>
+                        </NoteProvider>
+                      </SidebarProvider>
+                    </EntryProvider>
                   </ViewProvider>
                 </CaseProvider>
               </HeaderProvider>

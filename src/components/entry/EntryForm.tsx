@@ -5,7 +5,7 @@ import htmlToDraft from "html-to-draftjs";
 import { FloppyDisk, ImageSquare, PencilSimple, X } from "phosphor-react";
 import { useEffect, useRef, useState } from "react";
 import { Editor } from "react-draft-wysiwyg";
-import { useCase, useHeaderContext } from "../../contexts";
+import { useCase, useEntries, useHeaderContext } from "../../contexts";
 import { useView } from "../../contexts/ViewContext";
 import { getTheme } from "../../themes/getTheme";
 import { IEvidence, ViewMode } from "../../types";
@@ -14,6 +14,7 @@ import { ExpandButton } from "./ExpandButton";
 import { EvidencesPopup } from "./EvidencePopup";
 import { ImageViewerPopup } from "./ImageViewerPopup";
 import { useEvidence } from "../../contexts/EvidenceContext";
+import { EntryPopup } from "../EntryPopup";
 
 const toolbarOptions = {
   options: ["blockType", "inline", "list", "textAlign"],
@@ -102,6 +103,7 @@ export const EntryForm: React.FC<EntryBodyProps> = ({
   const { selectedTheme } = useHeaderContext();
   const { view } = useView();
   const { entries } = useCase();
+  const { setEntryIdOpen, isEntryPopupOpen } = useEntries();
   const editorRef = useRef<Editor>(null);
   const suggestions = entries.map((entry) => ({
     text: entry.entryCode,
@@ -279,6 +281,7 @@ export const EntryForm: React.FC<EntryBodyProps> = ({
                 plaintiffFileVolumeToSave,
                 defendantFileVolumeToSave
               );
+              setEntryIdOpen(null);
             }}
             size="sm"
             bgColor="bg-lightGreen hover:bg-darkGreen"
@@ -307,6 +310,23 @@ export const EntryForm: React.FC<EntryBodyProps> = ({
         title={imagePopupTitle}
         attachmentId={imagePopupAttachment}
         setIsVisible={setImagePopupVisible}></ImageViewerPopup>
+      <EntryPopup
+        isVisible={isEntryPopupOpen}
+        saveCurrentEntry={() => {
+          const plainText = editorState.getCurrentContent().getPlainText();
+          const newHtml = draftToHtml(
+            convertToRaw(editorState.getCurrentContent())
+          );
+          onSave(
+            plainText,
+            newHtml,
+            evidencesToSave,
+            currCaveatOfProof,
+            plaintiffFileVolumeToSave,
+            defendantFileVolumeToSave
+          );
+        }}
+      />
     </>
   );
 };

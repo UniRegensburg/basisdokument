@@ -6,7 +6,12 @@ import { EditText } from "react-edit-text";
 import "react-edit-text/dist/index.css";
 import { toast } from "react-toastify";
 import { v4 as uuidv4 } from "uuid";
-import { useCase, useHeaderContext, useSection } from "../../contexts";
+import {
+  useCase,
+  useEntries,
+  useHeaderContext,
+  useSection,
+} from "../../contexts";
 import { useUser } from "../../contexts/UserContext";
 import { useView } from "../../contexts/ViewContext";
 import { getTheme } from "../../themes/getTheme";
@@ -53,6 +58,7 @@ export const NewEntry: React.FC<NewEntryProps> = ({
   const { sectionList } = useSection();
   const { updateEvidenceList, setPlaintiffFileVolume, setDefendantFileVolume } =
     useEvidence();
+  const { setEntryIdOpen } = useEntries();
 
   const isPlaintiff = roleForNewEntry === UserRole.Plaintiff;
   const entryCodePrefix = isPlaintiff ? "K" : "B";
@@ -134,6 +140,7 @@ export const NewEntry: React.FC<NewEntryProps> = ({
 
     setIsNewEntryVisible(false);
     setIsExpanded(false);
+    setEntryIdOpen(null);
     if (associatedEntry && onClose) onClose(associatedEntry);
   };
 
@@ -144,6 +151,7 @@ export const NewEntry: React.FC<NewEntryProps> = ({
     }
     setIsNewEntryVisible(false);
     setIsExpanded(false);
+    setEntryIdOpen(null);
     if (associatedEntry && onClose) onClose(associatedEntry);
   };
 
@@ -235,6 +243,7 @@ export const NewEntry: React.FC<NewEntryProps> = ({
             }}
             onAbort={(plainText, rawHtml) => {
               closeNewEntryForm(plainText, rawHtml);
+              setEntryIdOpen(null);
             }}
             onSave={(
               plainText,
@@ -273,6 +282,7 @@ export const NewEntry: React.FC<NewEntryProps> = ({
               onClick={() => {
                 setIsErrorVisible(false);
                 setIsNewEntryVisible(false);
+                setEntryIdOpen(null);
               }}>
               Verwerfen
             </Button>

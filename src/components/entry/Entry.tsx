@@ -21,6 +21,7 @@ import {
   useNotes,
   useHints,
   useUser,
+  useEntries,
 } from "../../contexts";
 import { useOutsideClick } from "../../hooks/use-outside-click";
 import {
@@ -104,6 +105,7 @@ export const Entry: React.FC<EntryProps> = ({
     setPlaintiffFileVolume,
     setDefendantFileVolume,
   } = useEvidence();
+  const { setEntryIdOpen } = useEntries();
 
   const versionTimestamp = versionHistory[entry.version - 1].timestamp;
 
@@ -130,6 +132,7 @@ export const Entry: React.FC<EntryProps> = ({
   const { bookmarks, setBookmarks, deleteBookmarkByReference } = useBookmarks();
   const { setActiveSidebar } = useSidebar();
   const { user } = useUser();
+  const { entryIdOpen, setIsEntryPopupOpen } = useEntries();
 
   const isJudge = viewedBy === UserRole.Judge;
   const isPlaintiff = entry.role === UserRole.Plaintiff;
@@ -156,6 +159,10 @@ export const Entry: React.FC<EntryProps> = ({
   const createAssociatedEntryButton = useRef<HTMLAnchorElement | null>(null);
 
   const showNewEntry = () => {
+    if (entryIdOpen !== null) {
+      setIsEntryPopupOpen(true);
+      return;
+    }
     // TODO: check other browsers
     if (!getBrowser().includes("Firefox"))
       setTimeout(() => createAssociatedEntryButton.current?.click(), 1);
@@ -164,6 +171,7 @@ export const Entry: React.FC<EntryProps> = ({
     } else {
       setIsNewEntryVisible(true);
     }
+    setEntryIdOpen("newEntry");
   };
 
   const bookmarkEntry = (e: React.MouseEvent) => {
@@ -214,7 +222,12 @@ export const Entry: React.FC<EntryProps> = ({
   };
 
   const editEntry = (e: React.MouseEvent) => {
+    if (entryIdOpen !== null) {
+      setIsEntryPopupOpen(true);
+      return;
+    }
     setIsEditing(!isEditing);
+    setEntryIdOpen(entry.id);
     setIsBodyOpen(true);
   };
 
@@ -223,6 +236,7 @@ export const Entry: React.FC<EntryProps> = ({
     entryCode: string,
     sectionId: string
   ) => {
+    setEntryIdOpen(null);
     deleteBookmarkByReference(entryId);
     let prevEntries = entries
       .filter((entry) => entry.id !== entryId)
@@ -290,6 +304,7 @@ export const Entry: React.FC<EntryProps> = ({
     updateEvidenceList(evidences, entries);
     const newEvidenceIds = getEvidenceIds(evidences);
     setIsEditing(false);
+    setEntryIdOpen(null);
     setEntries((oldEntries) => {
       const newEntries = [...oldEntries];
       const entryIndex = newEntries.findIndex(
@@ -603,6 +618,7 @@ export const Entry: React.FC<EntryProps> = ({
                     setIsExpanded={() => setIsExpanded(!isExpanded)}
                     onAbort={() => {
                       setIsEditErrorVisible(true);
+                      setEntryIdOpen(null);
                     }}
                     onSave={(
                       plainText: string,
