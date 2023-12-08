@@ -21,6 +21,7 @@ import cx from "classnames";
 import { getTheme } from "../../themes/getTheme";
 import { ImageViewerPopup } from "./ImageViewerPopup";
 import { useEvidence } from "../../contexts/EvidenceContext";
+import { toast } from "react-toastify";
 
 interface EvidencesPopupProps {
   entryId?: string;
@@ -330,6 +331,16 @@ export const EvidencesPopup: React.FC<EvidencesPopupProps> = ({
     evidenceToEdit: IEvidence
   ) => {
     const { value } = e.target;
+    if (
+      evidenceList.some(
+        (evidence) => evidence.hasAttachment && evidence.attachmentId === value
+      )
+    ) {
+      toast(
+        `Es existiert bereits ein Beweis mit dieser Anlagennummerierung: ${value}`,
+        { autoClose: 7000, type: "warning" }
+      );
+    }
     evidenceToEdit.attachmentId = value;
     if (evidenceToEdit.role === UserRole.Plaintiff) {
     }
@@ -766,9 +777,9 @@ export const EvidencesPopup: React.FC<EvidencesPopupProps> = ({
                                             placeholder="Anlagennummer"
                                             className="focus:outline focus:outline-offWhite bg-offWhite px-2 m-0 border-b-[1px] border-slate-500 w-14"
                                             value={ev.attachmentId}
-                                            onChange={(e) =>
-                                              handleAttachmentIdChange(e, ev)
-                                            }
+                                            onChange={(e) => {
+                                              handleAttachmentIdChange(e, ev);
+                                            }}
                                             onKeyDown={(e) => {
                                               if (e.key === "Enter") {
                                                 setEvidenceEditMode({
