@@ -290,26 +290,30 @@ export const EntryForm: React.FC<EntryBodyProps> = ({
           </Button>
         </div>
       </div>
-      <EvidencesPopup
-        entryId={entryId}
-        caveatOfProof={currCaveatOfProof}
-        setCaveatOfProof={setCaveatOfProof}
-        isVisible={evidencePopupVisible}
-        setIsVisible={setEvidencePopupVisible}
-        isPlaintiff={isPlaintiff}
-        evidences={evidencesToSave}
-        setEvidencesToSave={setEvidencesToSave}
-        setPlaintiffFileVolumeToSave={setPlaintiffFileVolumeToSave}
-        setDefendantFileVolumeToSave={
-          setDefendantFileVolumeToSave
-        }></EvidencesPopup>
-      <ImageViewerPopup
-        isVisible={imagePopupVisible}
-        filedata={imagePopupData}
-        filename={imagePopupFilename}
-        title={imagePopupTitle}
-        attachmentId={imagePopupAttachment}
-        setIsVisible={setImagePopupVisible}></ImageViewerPopup>
+      {evidencePopupVisible && (
+        <EvidencesPopup
+          entryId={entryId}
+          caveatOfProof={currCaveatOfProof}
+          setCaveatOfProof={setCaveatOfProof}
+          isVisible={evidencePopupVisible}
+          setIsVisible={setEvidencePopupVisible}
+          isPlaintiff={isPlaintiff}
+          evidences={evidencesToSave}
+          setEvidencesToSave={setEvidencesToSave}
+          setPlaintiffFileVolumeToSave={setPlaintiffFileVolumeToSave}
+          setDefendantFileVolumeToSave={
+            setDefendantFileVolumeToSave
+          }></EvidencesPopup>
+      )}
+      {imagePopupVisible && (
+        <ImageViewerPopup
+          isVisible={imagePopupVisible}
+          filedata={imagePopupData}
+          filename={imagePopupFilename}
+          title={imagePopupTitle}
+          attachmentId={imagePopupAttachment}
+          setIsVisible={setImagePopupVisible}></ImageViewerPopup>
+      )}
       <EntryPopup
         isVisible={isEntryPopupOpen}
         saveCurrentEntry={() => {
