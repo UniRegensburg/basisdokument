@@ -537,7 +537,7 @@ export const Entry: React.FC<EntryProps> = ({
                                   Hinweis hinzufügen
                                 </li>
                               )}
-                              {!isOld && (
+                              {!isOld && !isEditing && (
                                 <>
                                   <li
                                     tabIndex={0}
@@ -546,6 +546,19 @@ export const Entry: React.FC<EntryProps> = ({
                                     <Pencil size={20} />
                                     Bearbeiten
                                   </li>
+                                  <li
+                                    tabIndex={0}
+                                    onClick={() =>
+                                      setIsDeleteErrorVisible(true)
+                                    }
+                                    className="flex items-center gap-2 p-2 rounded-lg text-vibrantRed hover:bg-offWhite focus:bg-offWhite focus:outline-none">
+                                    <Trash size={20} />
+                                    Löschen
+                                  </li>
+                                </>
+                              )}
+                              {!isOld && isEditing && (
+                                <>
                                   <li
                                     tabIndex={0}
                                     onClick={() =>
