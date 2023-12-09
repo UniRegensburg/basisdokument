@@ -6,6 +6,9 @@ export const useOnDrag = (
 ) => {
   const isClicked = useRef<boolean>(false);
 
+  let viewportHeight = window.innerHeight;
+  let viewportWidth = window.innerWidth;
+
   const coords = useRef<{
     startX: number;
     startY: number;
@@ -26,6 +29,25 @@ export const useOnDrag = (
     const body = content.parentElement;
     if (!body) return;
 
+    const isWithinLeftBorder = (nextX: number) => {
+      return -(content.clientWidth / 2) + moveIcon.clientWidth * 2 < nextX;
+    };
+
+    const isWithinRightBorder = (nextX: number) => {
+      return nextX < viewportWidth - content.clientWidth / 2;
+    };
+
+    const isWithinTopBorder = (nextY: number) => {
+      return content.clientHeight / 2 < nextY;
+    };
+
+    const isWithinBottomBorder = (nextY: number) => {
+      return (
+        nextY <
+        viewportHeight + content.clientHeight / 2 - moveIcon.clientHeight * 2
+      );
+    };
+
     const onMouseDown = (e: MouseEvent) => {
       isClicked.current = true;
       coords.current.startX = e.clientX;
@@ -34,7 +56,7 @@ export const useOnDrag = (
       coords.current.lastY = content.offsetTop;
     };
 
-    const onMouseUp = (e: MouseEvent) => {
+    const onMouseUp = (e?: MouseEvent) => {
       isClicked.current = false;
       coords.current.lastX = content.offsetLeft;
       coords.current.lastY = content.offsetTop;
@@ -48,16 +70,15 @@ export const useOnDrag = (
 
       // to make sure, moveIcon is still on screen
       if (
-        -(content.clientWidth / 2) + moveIcon.clientWidth * 2 < nextX &&
-        nextX < body.clientWidth - content.clientWidth / 2 &&
-        content.clientHeight / 2 < nextY &&
-        nextY <
-          body.clientHeight +
-            content.clientHeight / 2 -
-            moveIcon.clientHeight * 2
+        isWithinLeftBorder(nextX) &&
+        isWithinRightBorder(nextX) &&
+        isWithinTopBorder(nextY) &&
+        isWithinBottomBorder(nextY)
       ) {
         content.style.top = `${nextY}px`;
         content.style.left = `${nextX}px`;
+      } else {
+        onMouseUp();
       }
     };
 
