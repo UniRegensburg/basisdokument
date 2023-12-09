@@ -46,7 +46,7 @@ export const useOnDrag = (
     };
 
     // reset to mid of the screen
-    const onDoubleClick = (e: MouseEvent) => {
+    const onDoubleClick = () => {
       content.style.top = `${body.clientHeight / 2}px`;
       content.style.left = `${body.clientWidth / 2}px`;
     };
@@ -59,7 +59,7 @@ export const useOnDrag = (
       coords.current.lastY = content.offsetTop;
     };
 
-    const onMouseUp = (e?: MouseEvent) => {
+    const onMouseUp = () => {
       isClicked.current = false;
       coords.current.lastX = content.offsetLeft;
       coords.current.lastY = content.offsetTop;
