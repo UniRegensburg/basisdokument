@@ -6,9 +6,6 @@ export const useOnDrag = (
 ) => {
   const isClicked = useRef<boolean>(false);
 
-  let viewportHeight = window.innerHeight;
-  let viewportWidth = window.innerWidth;
-
   const coords = useRef<{
     startX: number;
     startY: number;
@@ -34,7 +31,7 @@ export const useOnDrag = (
     };
 
     const isWithinRightBorder = (nextX: number) => {
-      return nextX < viewportWidth - content.clientWidth / 2;
+      return nextX < body.clientWidth - content.clientWidth / 2;
     };
 
     const isWithinTopBorder = (nextY: number) => {
@@ -44,8 +41,14 @@ export const useOnDrag = (
     const isWithinBottomBorder = (nextY: number) => {
       return (
         nextY <
-        viewportHeight + content.clientHeight / 2 - moveIcon.clientHeight * 2
+        body.clientHeight + content.clientHeight / 2 - moveIcon.clientHeight * 2
       );
+    };
+
+    // reset to mid of the screen
+    const onDoubleClick = (e: MouseEvent) => {
+      content.style.top = `${body.clientHeight / 2}px`;
+      content.style.left = `${body.clientWidth / 2}px`;
     };
 
     const onMouseDown = (e: MouseEvent) => {
@@ -82,12 +85,14 @@ export const useOnDrag = (
       }
     };
 
+    moveIcon.addEventListener("dblclick", onDoubleClick);
     moveIcon.addEventListener("mousedown", onMouseDown);
     moveIcon.addEventListener("mouseup", onMouseUp);
     body.addEventListener("mousemove", onMouseMove);
     body.addEventListener("mouseleave", onMouseUp);
 
     const cleanup = () => {
+      moveIcon.removeEventListener("dblclick", onDoubleClick);
       moveIcon.removeEventListener("mousedown", onMouseDown);
       moveIcon.removeEventListener("mouseup", onMouseUp);
       body.removeEventListener("mousemove", onMouseMove);
