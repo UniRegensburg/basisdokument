@@ -22,7 +22,6 @@ import cx from "classnames";
 import { getTheme } from "../../themes/getTheme";
 import { ImageViewerPopup } from "./ImageViewerPopup";
 import { useEvidence } from "../../contexts/EvidenceContext";
-import { toast } from "react-toastify";
 import { useOnDrag } from "../../hooks/use-on-drag";
 
 interface EvidencesPopupProps {
