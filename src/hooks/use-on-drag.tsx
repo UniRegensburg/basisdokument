@@ -27,21 +27,27 @@ export const useOnDrag = (
     if (!body) return;
 
     const isWithinLeftBorder = (nextX: number) => {
-      return -(content.clientWidth / 2) + moveIcon.clientWidth * 2 < nextX;
+      return -(content.clientWidth / 2) + moveIcon.clientWidth * 1.5 < nextX;
     };
 
     const isWithinRightBorder = (nextX: number) => {
-      return nextX < body.clientWidth - content.clientWidth / 2;
+      return (
+        nextX <
+        body.clientWidth -
+          (content.clientWidth / 2 + moveIcon.clientWidth * 1.5)
+      );
     };
 
     const isWithinTopBorder = (nextY: number) => {
-      return content.clientHeight / 2 < nextY;
+      return content.clientHeight / 2 + moveIcon.clientHeight * 1.5 < nextY;
     };
 
     const isWithinBottomBorder = (nextY: number) => {
       return (
         nextY <
-        body.clientHeight + content.clientHeight / 2 - moveIcon.clientHeight * 2
+        body.clientHeight +
+          content.clientHeight / 2 -
+          moveIcon.clientHeight * 1.5
       );
     };
 
