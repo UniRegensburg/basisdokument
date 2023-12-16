@@ -11,7 +11,7 @@ import { AiFillGithub } from "react-icons/ai";
 import { Tooltip } from "./Tooltip";
 import { useImprint, usePatchnotes } from "../contexts";
 import { useOnboarding } from "../contexts/OnboardingContext";
-import { Onboarding } from "./Onboarding";
+import { Onboarding } from "./popups/Onboarding";
 
 const studentData2021 = [
   {

@@ -6,7 +6,7 @@ import { getEntryCode } from "../../util/get-entry-code";
 import { Button } from "../Button";
 import { Tooltip } from "../Tooltip";
 import cx from "classnames";
-import { ErrorPopup } from "../ErrorPopup";
+import { ErrorPopup } from "../popups/ErrorPopup";
 import { getTheme } from "../../themes/getTheme";
 
 export interface BookmarkProps {
@@ -93,9 +93,10 @@ export const Bookmark: React.FC<BookmarkProps> = ({ bookmark }) => {
                 "bg-darkGrey text-offWhite hover:bg-mediumGrey": !entryCode,
                 [`bg-${getTheme(selectedTheme)?.secondaryPlaintiff} text-${
                   getTheme(selectedTheme)?.primaryPlaintiff
-                } hover-bg-${getTheme(selectedTheme)?.primaryPlaintiff} hover-text-${
-                  getTheme(selectedTheme)?.secondaryPlaintiff
-                }`]: entryCode?.charAt(0) === "K",
+                } hover-bg-${
+                  getTheme(selectedTheme)?.primaryPlaintiff
+                } hover-text-${getTheme(selectedTheme)?.secondaryPlaintiff}`]:
+                  entryCode?.charAt(0) === "K",
                 [`bg-${getTheme(selectedTheme)?.secondaryDefendant} text-${
                   getTheme(selectedTheme)?.primaryDefendant
                 } hover-bg-${

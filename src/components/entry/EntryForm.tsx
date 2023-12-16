@@ -11,10 +11,11 @@ import { getTheme } from "../../themes/getTheme";
 import { IEvidence, ViewMode } from "../../types";
 import { Button } from "../Button";
 import { ExpandButton } from "./ExpandButton";
-import { EvidencesPopup } from "./EvidencePopup";
 import { ImageViewerPopup } from "./ImageViewerPopup";
 import { useEvidence } from "../../contexts/EvidenceContext";
-import { EntryPopup } from "../EntryPopup";
+import { EntryPopup } from "../popups/EntryPopup";
+import { PopupContainer } from "../moveable-popups/PopupContainer";
+import { EvidencesPopup } from "../moveable-popups/EvidencePopup";
 
 const toolbarOptions = {
   options: ["blockType", "inline", "list", "textAlign"],
@@ -291,19 +292,27 @@ export const EntryForm: React.FC<EntryBodyProps> = ({
         </div>
       </div>
       {evidencePopupVisible && (
-        <EvidencesPopup
-          entryId={entryId}
-          caveatOfProof={currCaveatOfProof}
-          setCaveatOfProof={setCaveatOfProof}
+        <PopupContainer
+          title={"Beweisbereich"}
           isVisible={evidencePopupVisible}
           setIsVisible={setEvidencePopupVisible}
-          isPlaintiff={isPlaintiff}
-          evidences={evidencesToSave}
-          setEvidencesToSave={setEvidencesToSave}
-          setPlaintiffFileVolumeToSave={setPlaintiffFileVolumeToSave}
-          setDefendantFileVolumeToSave={
-            setDefendantFileVolumeToSave
-          }></EvidencesPopup>
+          width={60}
+          height={75}
+          children={
+            <EvidencesPopup
+              entryId={entryId}
+              caveatOfProof={currCaveatOfProof}
+              setCaveatOfProof={setCaveatOfProof}
+              isVisible={evidencePopupVisible}
+              setIsVisible={setEvidencePopupVisible}
+              isPlaintiff={isPlaintiff}
+              evidences={evidencesToSave}
+              setEvidencesToSave={setEvidencesToSave}
+              setPlaintiffFileVolumeToSave={setPlaintiffFileVolumeToSave}
+              setDefendantFileVolumeToSave={
+                setDefendantFileVolumeToSave
+              }></EvidencesPopup>
+          }></PopupContainer>
       )}
       {imagePopupVisible && (
         <ImageViewerPopup

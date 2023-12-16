@@ -1,9 +1,9 @@
 import cx from "classnames";
 import { Eye, Warning } from "phosphor-react";
-import { Button } from "./Button";
-import { useCase, useEntries, useHeaderContext } from "../contexts";
-import { getTheme } from "../themes/getTheme";
-import { getEntryCode } from "../util/get-entry-code";
+import { Button } from "../Button";
+import { useCase, useEntries, useHeaderContext } from "../../contexts";
+import { getTheme } from "../../themes/getTheme";
+import { getEntryCode } from "../../util/get-entry-code";
 import { useEffect } from "react";
 
 interface EntryPopupProps {

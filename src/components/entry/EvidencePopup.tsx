@@ -15,7 +15,7 @@ import { getFilteredEvidencesSuggestions } from "../../util/get-evidences";
 import { useCase, useHeaderContext } from "../../contexts";
 import { useOutsideClick } from "../../hooks/use-outside-click";
 import { IEvidence, UserRole } from "../../types";
-import { ErrorPopup } from "../ErrorPopup";
+import { ErrorPopup } from "../popups/ErrorPopup";
 import { v4 as uuidv4 } from "uuid";
 import { Tooltip } from "../Tooltip";
 import cx from "classnames";

@@ -8,7 +8,7 @@ import { getTheme } from "../../themes/getTheme";
 import { INote } from "../../types";
 import { getEntryCode } from "../../util/get-entry-code";
 import { Button } from "../Button";
-import { ErrorPopup } from "../ErrorPopup";
+import { ErrorPopup } from "../popups/ErrorPopup";
 
 export interface NoteProps {
   note: INote;
@@ -73,9 +73,10 @@ export const Note: React.FC<NoteProps> = ({ note }) => {
                 "bg-darkGrey text-offWhite hover:bg-mediumGrey": !entryCode,
                 [`bg-${getTheme(selectedTheme)?.secondaryPlaintiff} text-${
                   getTheme(selectedTheme)?.primaryPlaintiff
-                } hover-bg-${getTheme(selectedTheme)?.primaryPlaintiff} hover-text-${
-                  getTheme(selectedTheme)?.secondaryPlaintiff
-                }`]: entryCode?.charAt(0) === "K",
+                } hover-bg-${
+                  getTheme(selectedTheme)?.primaryPlaintiff
+                } hover-text-${getTheme(selectedTheme)?.secondaryPlaintiff}`]:
+                  entryCode?.charAt(0) === "K",
                 [`bg-${getTheme(selectedTheme)?.secondaryDefendant} text-${
                   getTheme(selectedTheme)?.primaryDefendant
                 } hover-bg-${

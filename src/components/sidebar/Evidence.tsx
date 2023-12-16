@@ -11,7 +11,7 @@ import { IEvidence, UserRole } from "../../types";
 import { getEntryCodesForEvidence } from "../../util/get-entry-code";
 import { Button } from "../Button";
 import cx from "classnames";
-import { ErrorPopup } from "../ErrorPopup";
+import { ErrorPopup } from "../popups/ErrorPopup";
 import { getTheme } from "../../themes/getTheme";
 import { useOutsideClick } from "../../hooks/use-outside-click";
 import { useEvidence } from "../../contexts/EvidenceContext";

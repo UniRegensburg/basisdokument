@@ -1,7 +1,7 @@
-import { Button } from "./Button";
+import { Button } from "../Button";
 import { OnboardingSwiper } from "./OnboardingSwiper";
 import { XCircle } from "phosphor-react";
-import { useOnboarding } from "../contexts/OnboardingContext";
+import { useOnboarding } from "../../contexts/OnboardingContext";
 
 export const Onboarding = () => {
   const { isOnboardingVisible, setIsOnboardingVisible } = useOnboarding();
@@ -20,8 +20,8 @@ export const Onboarding = () => {
     <>
       {isOnboardingVisible && (
         <div className="z-30 fixed">
-          <div className="w-screen h-screen inset-0 fixed opacity-75 bg-darkGrey" />
-          <div className="w-screen h-screen inset-0 fixed flex items-center justify-center p-4">
+          <div className="w-screen h-full inset-0 fixed opacity-75 bg-darkGrey" />
+          <div className="w-screen h-full inset-0 fixed flex items-center justify-center p-4">
             <div className="relative bg-white max-w-5xl w-auto rounded-xl overflow-hidden max-h-[750px] h-full m-2">
               <button
                 className="absolute top-0 right-0 p-3 select-all z-10"
