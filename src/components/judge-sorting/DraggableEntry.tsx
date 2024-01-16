@@ -18,7 +18,7 @@ export const DraggableEntry: React.FC<DraggableEntryProps> = ({
   index,
 }) => {
   const { user } = useUser();
-  const { entries, currentVersion, setIndividualEntrySorting } = useCase();
+  const { entries, setIndividualEntrySorting } = useCase();
   const { bookmarks } = useBookmarks();
 
   const entry = getEntryById(entries, entryId);
@@ -122,7 +122,7 @@ export const DraggableEntry: React.FC<DraggableEntryProps> = ({
           <Entry
             viewedBy={user!.role}
             entry={entry}
-            isOld={entry.version < currentVersion}
+            isOld={true} //disable editing for judge discussion
             isBookmarked={
               !!bookmarks.find(
                 (bookmark) => bookmark.associatedEntry === entry.id

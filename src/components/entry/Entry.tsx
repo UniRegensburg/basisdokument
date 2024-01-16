@@ -222,6 +222,7 @@ export const Entry: React.FC<EntryProps> = ({
   };
 
   const editEntry = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (entryIdOpen !== null) {
       setIsEntryPopupOpen(true);
       return;

@@ -40,8 +40,8 @@ export const EntryPopup: React.FC<EntryPopupProps> = ({
               <div className="flex flex-col items-center justify-center space-y-8">
                 <p className="text-center text-base">
                   {entryIdOpen === "newEntry"
-                    ? "Sie erstellen bereits einen neuen Beitrag. Möchten Sie diesen zuerst Speichern?"
-                    : "Sie bearbeiten gerade bereits einen Beitrag. Möchten Sie diesen Ansehen oder Speichern?"}
+                    ? "Sie erstellen bereits einen neuen Beitrag. Möchten Sie diesen zuerst speichern?"
+                    : "Sie bearbeiten gerade bereits einen Beitrag. Möchten Sie diesen ansehen oder speichern?"}
                 </p>
                 <div
                   className={
@@ -53,53 +53,60 @@ export const EntryPopup: React.FC<EntryPopupProps> = ({
                     onClick={() => {
                       setIsEntryPopupOpen(false);
                     }}
-                    size="sm"
                     bgColor="bg-lightRed hover:bg-darkRed"
                     textColor="font-bold text-darkRed hover:text-white">
                     Abbrechen
                   </Button>
                   {entryIdOpen !== ("newEntry" || null) && (
                     <a href={`#${getEntryCode(entries, entryIdOpen!)}`}>
-                      <Button
-                        icon={
-                          <Eye size={20} weight="bold" className="inline"></Eye>
-                        }
-                        bgColor={cx({
-                          "bg-darkGrey text-offWhite hover:bg-mediumGrey":
-                            !getEntryCode(entries, entryIdOpen!),
-                          [`bg-${
-                            getTheme(selectedTheme)?.secondaryPlaintiff
-                          } text-${
-                            getTheme(selectedTheme)?.primaryPlaintiff
-                          } hover-bg-${
-                            getTheme(selectedTheme)?.primaryPlaintiff
-                          } hover-text-${
-                            getTheme(selectedTheme)?.secondaryPlaintiff
-                          }`]:
-                            getEntryCode(entries, entryIdOpen!).charAt(0) ===
-                            "K",
-                          [`bg-${
-                            getTheme(selectedTheme)?.secondaryDefendant
-                          } text-${
-                            getTheme(selectedTheme)?.primaryDefendant
-                          } hover-bg-${
-                            getTheme(selectedTheme)?.primaryDefendant
-                          } hover-text-${
-                            getTheme(selectedTheme)?.secondaryDefendant
-                          }`]:
-                            getEntryCode(entries, entryIdOpen!).charAt(0) ===
-                            "B",
-                        })}
-                        onClick={() => {
-                          setIsEntryPopupOpen(false);
-                        }}>
-                        {`${getEntryCode(entries, entryIdOpen!)}`}
-                      </Button>
+                      <div className="grid align-items-center">
+                        <Button
+                          icon={
+                            <Eye
+                              size={20}
+                              weight="bold"
+                              className="inline"></Eye>
+                          }
+                          bgColor={cx({
+                            "bg-darkGrey hover:bg-mediumGrey": !getEntryCode(
+                              entries,
+                              entryIdOpen!
+                            ),
+                            [`bg-${
+                              getTheme(selectedTheme)?.secondaryPlaintiff
+                            } text-${
+                              getTheme(selectedTheme)?.primaryPlaintiff
+                            } hover-bg-${
+                              getTheme(selectedTheme)?.primaryPlaintiff
+                            } hover-text-${
+                              getTheme(selectedTheme)?.secondaryPlaintiff
+                            }`]:
+                              getEntryCode(entries, entryIdOpen!).charAt(0) ===
+                              "K",
+                            [`bg-${
+                              getTheme(selectedTheme)?.secondaryDefendant
+                            } text-${
+                              getTheme(selectedTheme)?.primaryDefendant
+                            } hover-bg-${
+                              getTheme(selectedTheme)?.primaryDefendant
+                            } hover-text-${
+                              getTheme(selectedTheme)?.secondaryDefendant
+                            }`]:
+                              getEntryCode(entries, entryIdOpen!).charAt(0) ===
+                              "B",
+                          })}
+                          alternativePadding="place-self-center"
+                          onClick={() => {
+                            setIsEntryPopupOpen(false);
+                          }}>
+                          {`${getEntryCode(entries, entryIdOpen!)}`}
+                        </Button>
+                      </div>
                     </a>
                   )}
                   <Button
-                    bgColor="bg-lightGreen hover:bg-darkGreen/25"
-                    textColor="text-darkGreen font-bold"
+                    bgColor="bg-lightGreen hover:bg-darkGreen"
+                    textColor="text-darkGreen hover:text-white font-bold"
                     onClick={() => {
                       setIsEntryPopupOpen(false);
                       saveCurrentEntry();
