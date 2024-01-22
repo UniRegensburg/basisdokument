@@ -225,6 +225,7 @@ export const Entry: React.FC<EntryProps> = ({
     e.stopPropagation();
     if (entryIdOpen !== null) {
       setIsEntryPopupOpen(true);
+      setIsMenuOpen(false);
       return;
     }
     setIsEditing(!isEditing);
