@@ -229,6 +229,7 @@ export const Entry: React.FC<EntryProps> = ({
       return;
     }
     setIsEditing(!isEditing);
+    setIsMenuOpen(false);
     setEntryIdOpen(entry.id);
     setIsBodyOpen(true);
   };
