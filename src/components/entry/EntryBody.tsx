@@ -228,7 +228,7 @@ export const EntryBody: React.FC<EntryBodyProps> = ({
               isPlaintiff,
             [`border-${getTheme(selectedTheme)?.secondaryDefendant}`]:
               !isPlaintiff,
-            "max-h-[70vh] overflow-y-auto": showInPopup,
+            "max-h-[55vh] overflow-y-auto": showInPopup,
           }
         )}>
         {searchbarValue === "" &&

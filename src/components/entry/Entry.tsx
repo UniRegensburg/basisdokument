@@ -340,7 +340,7 @@ export const Entry: React.FC<EntryProps> = ({
               hideEntriesHighlighter &&
               getCurrentTool.id === Tool.Cursor),
           "pointer-events-none": isHidden,
-          "w-1/2": shownInPopup,
+          "flex-1": shownInPopup,
         })}>
         <div
           className={cx("flex flex-col", {
@@ -400,10 +400,11 @@ export const Entry: React.FC<EntryProps> = ({
                     }></ArrowSquareOut>
                 </Tooltip>
               </a>
-            ) : (
-              //spacing
+            ) : !shownInPopup ? (
+              // spacing
               <div className="h-6"></div>
-            )}
+            ) : null}
+
             <div
               className={cx("shadow rounded-lg", {
                 "outline outline-2 outline-offset-4 outline-blue-600":
@@ -661,10 +662,10 @@ export const Entry: React.FC<EntryProps> = ({
                   Auf diesen Beitrag Bezug nehmen
                 </Button>
               </a>
-            ) : (
-              //spacing
+            ) : !shownInPopup ? (
+              // spacing
               <div className="h-9"></div>
-            )}
+            ) : null}
           </div>
           {isNewEntryVisible && (
             <div className={cx(`flex flex-col w-full`)}>
