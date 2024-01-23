@@ -89,7 +89,8 @@ export const ImageViewerPopup: React.FC<ImageViewerPopupProps> = ({
                   "w-[90vw] h-[80vh]": isFullscreen,
                 })}
                 src={filedataurl + "#navpanes=0"} // hide the nav-panel of pdf-embed at first
-                type={filetype}></embed>
+                type={filetype}
+                title={filename}></embed>
             </div>
             <span className="text-sm text-darkGrey opacity-80">{`${
               filetype.includes("image") ? "TIFF" : "PDF"
