@@ -98,6 +98,16 @@ export const Evidence: React.FC<EvidenceProps> = ({ evidence }) => {
 
   const handleAttachmentIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
+    if (
+      evidenceList.some(
+        (evidence) => evidence.hasAttachment && evidence.attachmentId === value
+      )
+    ) {
+      toast(
+        `Es existiert bereits ein Beweis mit dieser Anlagennummerierung: ${value}`,
+        { autoClose: 7000, type: "warning" }
+      );
+    }
     const newEntries = entries.map((entry) => {
       entry.evidenceIds = entry.evidenceIds?.map((evId) => {
         if (evId === evidence.id) {
