@@ -334,6 +334,9 @@ export const EvidencesPopup: React.FC<EvidencesPopupProps> = ({
     if (
       evidenceList.some(
         (evidence) => evidence.hasAttachment && evidence.attachmentId === value
+      ) ||
+      currentEvidenceList.some(
+        (evidence) => evidence.hasAttachment && evidence.attachmentId === value
       )
     ) {
       toast(
@@ -342,8 +345,6 @@ export const EvidencesPopup: React.FC<EvidencesPopupProps> = ({
       );
     }
     evidenceToEdit.attachmentId = value;
-    if (evidenceToEdit.role === UserRole.Plaintiff) {
-    }
     updateCurrEvidenceList(evidenceToEdit);
   };
 
