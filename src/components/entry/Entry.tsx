@@ -6,7 +6,7 @@ import {
   BookmarkSimple,
   DotsThree,
   Notepad,
-  Pencil,
+  PencilSimple,
   Scales,
   Trash,
   ArrowSquareOut,
@@ -224,11 +224,14 @@ export const Entry: React.FC<EntryProps> = ({
   };
 
   const editEntry = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (entryIdOpen !== null) {
       setIsEntryPopupOpen(true);
+      setIsMenuOpen(false);
       return;
     }
     setIsEditing(!isEditing);
+    setIsMenuOpen(false);
     setEntryIdOpen(entry.id);
     setIsBodyOpen(true);
   };
@@ -339,7 +342,7 @@ export const Entry: React.FC<EntryProps> = ({
               hideEntriesHighlighter &&
               getCurrentTool.id === Tool.Cursor),
           "pointer-events-none": isHidden,
-          "w-1/2": shownInPopup,
+          "flex-1": shownInPopup,
         })}>
         <div
           className={cx("flex flex-col", {
@@ -402,10 +405,11 @@ export const Entry: React.FC<EntryProps> = ({
                     }}></ArrowSquareOut>
                 </Tooltip>
               </a>
-            ) : (
-              //spacing
+            ) : !shownInPopup ? (
+              // spacing
               <div className="h-6"></div>
-            )}
+            ) : null}
+
             <div
               className={cx("shadow rounded-lg", {
                 "outline outline-2 outline-offset-4 outline-blue-600":
@@ -483,7 +487,7 @@ export const Entry: React.FC<EntryProps> = ({
                           showEditButton
                           editButtonContent={
                             <Tooltip asChild text="Name bearbeiten">
-                              <Pencil />
+                              <PencilSimple />
                             </Tooltip>
                           }
                           editButtonProps={{
@@ -563,7 +567,7 @@ export const Entry: React.FC<EntryProps> = ({
                                     tabIndex={0}
                                     onClick={editEntry}
                                     className="flex items-center gap-2 p-2 rounded-lg hover:bg-offWhite focus:bg-offWhite focus:outline-none">
-                                    <Pencil size={20} />
+                                    <PencilSimple size={20} />
                                     Bearbeiten
                                   </li>
                                   <li
@@ -663,10 +667,10 @@ export const Entry: React.FC<EntryProps> = ({
                   Auf diesen Beitrag Bezug nehmen
                 </Button>
               </a>
-            ) : (
-              //spacing
+            ) : !shownInPopup ? (
+              // spacing
               <div className="h-9"></div>
-            )}
+            ) : null}
           </div>
           {isNewEntryVisible && (
             <div className={cx(`flex flex-col w-full`)}>
@@ -762,6 +766,7 @@ export const Entry: React.FC<EntryProps> = ({
           setIsVisible={setIsAssociationsPopupOpen}
           width={60}
           height={75}
+          spacing={1}
           children={
             <AssociationsPopup
               setIsAssociationsPopupOpen={setIsAssociationsPopupOpen}

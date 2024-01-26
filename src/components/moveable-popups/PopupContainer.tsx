@@ -9,6 +9,7 @@ interface PopupContainerProps {
   children: React.ReactNode;
   width: number;
   height: number;
+  spacing?: number;
 }
 
 export const PopupContainer: React.FC<PopupContainerProps> = ({
@@ -18,13 +19,13 @@ export const PopupContainer: React.FC<PopupContainerProps> = ({
   width,
   height,
   children,
+  spacing,
 }) => {
   const popupRef = useRef(null);
   const moveIconRef = useRef(null);
   useOnDrag(moveIconRef, popupRef);
 
   const [isDefaultRatio] = useState<boolean>(window.devicePixelRatio <= 1);
-  console.log(width, height);
 
   const [containerDimensions] = useState<String>(
     isDefaultRatio
@@ -41,11 +42,15 @@ export const PopupContainer: React.FC<PopupContainerProps> = ({
     return null;
   }
 
+  if (!spacing) {
+    spacing = 6;
+  }
+
   return (
     <>
       <div className="opacity-25 fixed inset-0 z-40 bg-black !m-0 w-full h-full" />
       <div
-        className={`fixed inset-0 flex flex-col justify-center items-center z-50 `}>
+        className={`fixed inset-0 flex flex-col justify-center items-center z-50`}>
         <div
           ref={popupRef}
           className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 ${containerDimensions}`}>
@@ -66,7 +71,7 @@ export const PopupContainer: React.FC<PopupContainerProps> = ({
               </button>
             </div>
             <div
-              className={`overflow-y-auto space-y-6 p-2 ${contentDimensions}`}>
+              className={`overflow-y-auto space-y-${spacing} p-2 ${contentDimensions}`}>
               {children}
             </div>
           </div>
