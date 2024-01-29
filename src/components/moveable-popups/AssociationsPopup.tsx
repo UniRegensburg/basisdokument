@@ -33,7 +33,7 @@ export const AssociationsPopup: React.FC<AssociationsPopupProps> = ({
 
   return (
     <>
-      <div className="flex gap-2 w-full mb-8 justify-evenly max-h-[28vh] overflow-auto shadow-inner p-2">
+      <div className="flex gap-2 w-full mb-8 justify-evenly p-2">
         <Entry
           shownInPopup={true}
           entry={associatedEntry}
@@ -60,7 +60,7 @@ export const AssociationsPopup: React.FC<AssociationsPopupProps> = ({
           : "Keine weiteren"}{" "}
         Bezugnahmen zu diesen Beiträgen
       </span>
-      <div className="flex justify-evenly w-full gap-4 max-h-[28vh] overflow-auto">
+      <div className="flex justify-evenly w-full gap-4">
         {leftEntry && (
           <div className="flex flex-col w-full">
             <div className="p-2 rounded-lg bg-offWhite my-4 font-bold text-darkGrey mr-3">
