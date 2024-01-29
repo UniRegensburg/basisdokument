@@ -1,7 +1,7 @@
 import { Info } from "phosphor-react";
 import cx from "classnames";
 import { useState } from "react";
-import { UserRole } from "../types";
+import { UserRole } from "../../types";
 
 interface ErrorPopupProps {
   role: UserRole;

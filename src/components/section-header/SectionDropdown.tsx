@@ -4,7 +4,7 @@ import { DotsThree, Trash, CheckCircle, XCircle, Circle } from "phosphor-react";
 import { useCase, useHeaderContext, useSection, useUser } from "../../contexts";
 import { UserRole } from "../../types";
 import { Tooltip } from "../Tooltip";
-import { ErrorPopup } from "../ErrorPopup";
+import { ErrorPopup } from "../popups/ErrorPopup";
 import { useState } from "react";
 import { useEvidence } from "../../contexts/EvidenceContext";
 

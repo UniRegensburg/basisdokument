@@ -1,6 +1,5 @@
 import { X } from "phosphor-react";
-import { usePatchnotes } from "../contexts/PatchnotesContext";
-import cx from "classnames";
+import { usePatchnotes } from "../../contexts/PatchnotesContext";
 import { useState } from "react";
 
 export const PatchnotesPopup = () => {
@@ -194,13 +193,10 @@ export const PatchnotesPopup = () => {
 
   return (
     <>
-      <div
-        className={cx(
-          "justify-center items-center flex overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none"
-        )}>
-        <div className="my-6 mx-auto w-[700px]">
+      <div className="justify-center items-center flex overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none">
+        <div className="my-6 mx-auto">
           {/*content*/}
-          <div className="p-6 space-y-4 border-0 rounded-lg shadow-lg flex flex-col w-full bg-white outline-none focus:outline-none">
+          <div className="h-[80vh] w-[60vw] p-6 space-y-4 border-0 rounded-lg shadow-lg flex flex-col bg-white outline-none focus:outline-none">
             {/*header*/}
             <div className="flex items-start justify-between rounded-lg ">
               <h3 className="text-xl font-bold text-darkGrey">Patchnotes</h3>
@@ -215,115 +211,113 @@ export const PatchnotesPopup = () => {
               </div>
             </div>
             {/*body*/}
-            <div className="space-y-4 border rounded-md">
-              <div className="flex flex-row">
-                {/*tabs*/}
-                <div className="flex flex-col">
-                  <div
-                    className={`w-40 flex-grow h-full grid place-items-center p-2 border-b hover:bg-gray-200 cursor-pointer ${
-                      currentPatchnote === "2.2.0" ? "" : "border-r opacity-30"
-                    }`}
-                    onClick={() => {
-                      switchPatchnoteContent("2.2.0");
-                    }}>
-                    <div className="flex flex-col">
-                      <div className="font-semibold self-center">
-                        Version 2.2.0
-                      </div>
-                      <div className="opacity-75">23. November 2023</div>
+            <div className="flex flex-row border space-y-2 rounded-md overflow-y-auto">
+              {/*tabs*/}
+              <div className="flex flex-col">
+                <div
+                  className={`w-40 flex-grow h-full grid place-items-center p-2 border-b hover:bg-gray-200 cursor-pointer ${
+                    currentPatchnote === "2.2.0" ? "" : "border-r opacity-30"
+                  }`}
+                  onClick={() => {
+                    switchPatchnoteContent("2.2.0");
+                  }}>
+                  <div className="flex flex-col">
+                    <div className="font-semibold self-center">
+                      Version 2.2.0
                     </div>
-                  </div>
-                  <div
-                    className={`w-40 flex-grow h-full grid place-items-center p-2 border-b hover:bg-gray-200 cursor-pointer ${
-                      currentPatchnote === "2.1.0" ? "" : "border-r opacity-30"
-                    }`}
-                    onClick={() => {
-                      switchPatchnoteContent("2.1.0");
-                    }}>
-                    <div className="flex flex-col">
-                      <div className="font-semibold self-center">
-                        Version 2.1.0
-                      </div>
-                      <div className="opacity-75">14. Juli 2023</div>
-                    </div>
-                  </div>
-                  <div
-                    className={`w-40 flex-grow h-full grid place-items-center p-2 border-b hover:bg-gray-200 cursor-pointer ${
-                      currentPatchnote === "2.0.1" ? "" : "border-r opacity-30"
-                    }`}
-                    onClick={() => {
-                      switchPatchnoteContent("2.0.1");
-                    }}>
-                    <div className="flex flex-col">
-                      <div className="font-semibold self-center">
-                        Version 2.0.1
-                      </div>
-                      <div className="opacity-75">09. Mai 2023</div>
-                    </div>
-                  </div>
-                  <div
-                    className={`w-40 flex-grow h-full grid place-items-center p-2 hover:bg-gray-200 cursor-pointer ${
-                      currentPatchnote === "2.0.0" ? "" : "border-r opacity-30"
-                    }`}
-                    onClick={() => {
-                      switchPatchnoteContent("2.0.0");
-                    }}>
-                    <div className="flex flex-col">
-                      <div className="font-semibold self-center">
-                        Version 2.0.0
-                      </div>
-                      <div className="opacity-75">05. Mai 2023</div>
-                    </div>
-                  </div>
-                  <div
-                    className={`w-40 flex-grow h-full grid place-items-center p-2 border-t hover:bg-gray-200 cursor-pointer ${
-                      currentPatchnote === "1.0.2" ? "" : "border-r opacity-30"
-                    }`}
-                    onClick={() => {
-                      switchPatchnoteContent("1.0.2");
-                    }}>
-                    <div className="flex flex-col">
-                      <div className="font-semibold self-center">
-                        Version 1.0.2
-                      </div>
-                      <div className="opacity-75">02. März 2023</div>
-                    </div>
-                  </div>
-                  <div
-                    className={`w-40 flex-grow h-full grid place-items-center p-2 border-t hover:bg-gray-200 cursor-pointer ${
-                      currentPatchnote === "1.0.1" ? "" : "border-r opacity-30"
-                    }`}
-                    onClick={() => {
-                      switchPatchnoteContent("1.0.1");
-                    }}>
-                    <div className="flex flex-col">
-                      <div className="font-semibold self-center">
-                        Version 1.0.1
-                      </div>
-                      <div className="opacity-75">25. Februar 2023</div>
-                    </div>
-                  </div>
-                  <div
-                    className={`w-40 flex-grow h-full grid place-items-center p-2 border-t hover:bg-gray-200 cursor-pointer ${
-                      currentPatchnote === "1.0.0" ? "" : "border-r opacity-30"
-                    }`}
-                    onClick={() => {
-                      switchPatchnoteContent("1.0.0");
-                    }}>
-                    <div className="flex flex-col">
-                      <div className="font-semibold self-center">
-                        Version 1.0.0
-                      </div>
-                      <div className="opacity-75">20. Februar 2023</div>
-                    </div>
+                    <div className="opacity-75">23. November 2023</div>
                   </div>
                 </div>
-                {/*content*/}
                 <div
-                  className="flex flex-col p-4 h-full max-h-[80vh] overflow-auto"
-                  dangerouslySetInnerHTML={{ __html: patchnoteContent }}
-                />
+                  className={`w-40 flex-grow h-full grid place-items-center p-2 border-b hover:bg-gray-200 cursor-pointer ${
+                    currentPatchnote === "2.1.0" ? "" : "border-r opacity-30"
+                  }`}
+                  onClick={() => {
+                    switchPatchnoteContent("2.1.0");
+                  }}>
+                  <div className="flex flex-col">
+                    <div className="font-semibold self-center">
+                      Version 2.1.0
+                    </div>
+                    <div className="opacity-75">14. Juli 2023</div>
+                  </div>
+                </div>
+                <div
+                  className={`w-40 flex-grow h-full grid place-items-center p-2 border-b hover:bg-gray-200 cursor-pointer ${
+                    currentPatchnote === "2.0.1" ? "" : "border-r opacity-30"
+                  }`}
+                  onClick={() => {
+                    switchPatchnoteContent("2.0.1");
+                  }}>
+                  <div className="flex flex-col">
+                    <div className="font-semibold self-center">
+                      Version 2.0.1
+                    </div>
+                    <div className="opacity-75">09. Mai 2023</div>
+                  </div>
+                </div>
+                <div
+                  className={`w-40 flex-grow h-full grid place-items-center p-2 hover:bg-gray-200 cursor-pointer ${
+                    currentPatchnote === "2.0.0" ? "" : "border-r opacity-30"
+                  }`}
+                  onClick={() => {
+                    switchPatchnoteContent("2.0.0");
+                  }}>
+                  <div className="flex flex-col">
+                    <div className="font-semibold self-center">
+                      Version 2.0.0
+                    </div>
+                    <div className="opacity-75">05. Mai 2023</div>
+                  </div>
+                </div>
+                <div
+                  className={`w-40 flex-grow h-full grid place-items-center p-2 border-t hover:bg-gray-200 cursor-pointer ${
+                    currentPatchnote === "1.0.2" ? "" : "border-r opacity-30"
+                  }`}
+                  onClick={() => {
+                    switchPatchnoteContent("1.0.2");
+                  }}>
+                  <div className="flex flex-col">
+                    <div className="font-semibold self-center">
+                      Version 1.0.2
+                    </div>
+                    <div className="opacity-75">02. März 2023</div>
+                  </div>
+                </div>
+                <div
+                  className={`w-40 flex-grow h-full grid place-items-center p-2 border-t hover:bg-gray-200 cursor-pointer ${
+                    currentPatchnote === "1.0.1" ? "" : "border-r opacity-30"
+                  }`}
+                  onClick={() => {
+                    switchPatchnoteContent("1.0.1");
+                  }}>
+                  <div className="flex flex-col">
+                    <div className="font-semibold self-center">
+                      Version 1.0.1
+                    </div>
+                    <div className="opacity-75">25. Februar 2023</div>
+                  </div>
+                </div>
+                <div
+                  className={`w-40 flex-grow h-full grid place-items-center p-2 border-t hover:bg-gray-200 cursor-pointer ${
+                    currentPatchnote === "1.0.0" ? "" : "border-r opacity-30"
+                  }`}
+                  onClick={() => {
+                    switchPatchnoteContent("1.0.0");
+                  }}>
+                  <div className="flex flex-col">
+                    <div className="font-semibold self-center">
+                      Version 1.0.0
+                    </div>
+                    <div className="opacity-75">20. Februar 2023</div>
+                  </div>
+                </div>
               </div>
+              {/*content*/}
+              <div
+                className="flex flex-col pl-6 h-[70vh] w-[60vw] overflow-auto"
+                dangerouslySetInnerHTML={{ __html: patchnoteContent }}
+              />
             </div>
           </div>
         </div>

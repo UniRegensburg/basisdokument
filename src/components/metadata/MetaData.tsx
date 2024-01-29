@@ -6,7 +6,7 @@ import { useCase, useHeaderContext, useUser } from "../../contexts";
 import { getTheme } from "../../themes/getTheme";
 import { UserRole } from "../../types";
 import { Button } from "../Button";
-import { ErrorPopup } from "../ErrorPopup";
+import { ErrorPopup } from "../popups/ErrorPopup";
 import { Tooltip } from "../Tooltip";
 import { MetaDataBody } from "./MetaDataBody";
 import { MetaDataForm } from "./MetaDataForm";

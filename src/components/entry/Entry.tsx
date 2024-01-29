@@ -35,7 +35,7 @@ import {
   IEvidence,
 } from "../../types";
 import { Button } from "../Button";
-import { ErrorPopup } from "../ErrorPopup";
+import { ErrorPopup } from "../popups/ErrorPopup";
 import { Tooltip } from "../Tooltip";
 import { EntryList } from "./EntryList";
 import { useBookmarks } from "../../contexts";
@@ -45,10 +45,11 @@ import { getTheme } from "../../themes/getTheme";
 import { getEntryCode } from "../../util/get-entry-code";
 import { useView } from "../../contexts/ViewContext";
 import { getBrowser } from "../../util/get-browser";
-import { AssociationsPopup } from "../AssociationsPopup";
 import { getEntryById } from "../../contexts/CaseContext";
 import { getEvidenceIds, getEvidences } from "../../util/get-evidences";
 import { useEvidence } from "../../contexts/EvidenceContext";
+import { PopupContainer } from "../moveable-popups/PopupContainer";
+import { AssociationsPopup } from "../moveable-popups/AssociationsPopup";
 
 interface EntryProps {
   entry: IEntry;
@@ -120,6 +121,7 @@ export const Entry: React.FC<EntryProps> = ({
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
   const [isAssociationsPopupOpen, setIsAssociationsPopupOpen] =
     useState<boolean>(false);
+  const [associatedEntry, setAssociatedEntry] = useState<IEntry>();
   const [isNewEntryVisible, setIsNewEntryVisible] = useState<boolean>(false);
   const [isEditErrorVisible, setIsEditErrorVisible] = useState<boolean>(false);
   const [isDeleteErrorVisible, setIsDeleteErrorVisible] =
@@ -395,9 +397,12 @@ export const Entry: React.FC<EntryProps> = ({
                 <Tooltip text="Bezugnahme gesondert anzeigen">
                   <ArrowSquareOut
                     size={14}
-                    onClick={() =>
-                      setIsAssociationsPopupOpen(true)
-                    }></ArrowSquareOut>
+                    onClick={() => {
+                      setAssociatedEntry(
+                        getEntryById(entries, entry.associatedEntry!)!
+                      );
+                      setIsAssociationsPopupOpen(true);
+                    }}></ArrowSquareOut>
                 </Tooltip>
               </a>
             ) : !shownInPopup ? (
@@ -753,12 +758,21 @@ export const Entry: React.FC<EntryProps> = ({
         </div>
       </ErrorPopup>
       {isAssociationsPopupOpen && (
-        <AssociationsPopup
-          setIsAssociationsPopupOpen={setIsAssociationsPopupOpen}
-          entry={entry}
-          associatedEntry={
-            getEntryById(entries, entry.associatedEntry!)!
-          }></AssociationsPopup>
+        <PopupContainer
+          title={`Beitrag ${entry.entryCode} bezieht sich auf Beitrag ${
+            associatedEntry!.entryCode
+          }`}
+          isVisible={isAssociationsPopupOpen}
+          setIsVisible={setIsAssociationsPopupOpen}
+          width={60}
+          height={75}
+          spacing={1}
+          children={
+            <AssociationsPopup
+              setIsAssociationsPopupOpen={setIsAssociationsPopupOpen}
+              entry={entry}
+              associatedEntry={associatedEntry!}></AssociationsPopup>
+          }></PopupContainer>
       )}
     </>
   );
