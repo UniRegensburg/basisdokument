@@ -4,8 +4,9 @@ import { DotsThree, Trash, CheckCircle, XCircle, Circle } from "phosphor-react";
 import { useCase, useHeaderContext, useSection, useUser } from "../../contexts";
 import { UserRole } from "../../types";
 import { Tooltip } from "../Tooltip";
-import { ErrorPopup } from "../ErrorPopup";
+import { ErrorPopup } from "../popups/ErrorPopup";
 import { useState } from "react";
+import { useEvidence } from "../../contexts/EvidenceContext";
 
 interface SectionDropdownProps {
   sectionId: string;
@@ -17,9 +18,11 @@ export const SectionDropdown: React.FC<SectionDropdownProps> = ({
   version,
 }) => {
   const { user } = useUser();
-  const { currentVersion, setIndividualEntrySorting, setEntries } = useCase();
-  const { setSectionList, setIndividualSorting } = useSection();
+  const { currentVersion, setIndividualEntrySorting, entries, setEntries } =
+    useCase();
+  const { sectionList, setSectionList, setIndividualSorting } = useSection();
   const { showEntrySorting } = useHeaderContext();
+  const { removeEvidencesWithoutReferences } = useEvidence();
 
   const [isDeleteErrorVisible, setIsDeleteErrorVisible] =
     useState<boolean>(false);
@@ -28,9 +31,13 @@ export const SectionDropdown: React.FC<SectionDropdownProps> = ({
 
   const deleteSection = () => {
     // Remove entries that belong to the section
-    setEntries((entries) =>
-      entries.filter((entry) => entry.sectionId !== sectionId)
+    let entriesToDelete = entries.filter(
+      (entry) => entry.sectionId !== sectionId
     );
+    removeEvidencesWithoutReferences(entriesToDelete);
+    setEntries(entriesToDelete);
+
+    const indexSection = sectionList.findIndex((sect) => sect.id === sectionId);
 
     // Remove the section
     setSectionList((prevSectionList) =>
@@ -43,6 +50,25 @@ export const SectionDropdown: React.FC<SectionDropdownProps> = ({
       const { [sectionId]: _, ...rest } = prevIndividualEntrySorting;
       return rest;
     });
+
+    // Update entryCodes
+    const sectionIdsAfter = sectionList
+      .slice(indexSection)
+      .map((sect) => sect.id);
+
+    setEntries(
+      entries.map((entr) => {
+        if (sectionIdsAfter.includes(entr.sectionId)) {
+          const newNum =
+            parseInt(entr.entryCode.match(/(?<=-)\d*(?=-)/)![0]) - 1;
+          entr.entryCode = entr.entryCode.replace(
+            /(?<=-)\d*(?=-)/,
+            newNum.toString()
+          );
+        }
+        return entr;
+      })
+    );
   };
 
   const resetLitigiousChecks = () => {
@@ -96,7 +122,7 @@ export const SectionDropdown: React.FC<SectionDropdownProps> = ({
   return (
     <>
       <DropdownMenu.Root>
-        <DropdownMenu.Trigger className="py-1">
+        <DropdownMenu.Trigger>
           <span>
             <Tooltip asChild text="Mehr Optionen">
               <DotsThree

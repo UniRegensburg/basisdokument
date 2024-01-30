@@ -1,5 +1,5 @@
 export interface ITheme {
-  id: string,
+  id: string;
   title: string;
   primaryPlaintiff: string;
   secondaryPlaintiff: string;
@@ -41,12 +41,34 @@ export interface ISidebar {
 export interface IUser {
   name: string;
   role: UserRole;
+  signature?: JudgeTitle;
+}
+
+export enum ViewMode {
+  SideBySide = "SbS",
+  Rows = "Row",
+  Columns = "Col",
 }
 
 export enum UserRole {
   Plaintiff = "Klagepartei",
   Defendant = "Beklagtenpartei",
   Judge = "Richter:in",
+  Client = "Mandant:in",
+}
+
+export enum JudgeTitle {
+  Default = "Richter:in",
+  Female = "Richterin",
+  Male = "Richter",
+  Female_LG = "Richterin am Landgericht",
+  Male_LG = "Richter am Landgericht",
+  Female_VLG = "Vorsitzende Richterin am Landgericht",
+  Male_VLG = "Vorsitzender Richter am Landgericht",
+  Female_VPLG = "Vizepräsidentin des Landesgerichts",
+  Male_VPLG = "Vizepräsident des Landgerichts",
+  Female_PLG = "Präsidentin des Landgerichts",
+  Male_PLG = "Präsident des Landgerichts",
 }
 
 export enum Sorting {
@@ -57,19 +79,25 @@ export enum Sorting {
 export enum UsageMode {
   Open,
   Create,
+  Readonly,
 }
 
 export enum SidebarState {
+  Sorting,
   Notes,
   Hints,
   Bookmarks,
+  Evidences,
 }
 
 export interface ISection {
   id: string;
+  num: number;
   version: number;
   titlePlaintiff: string;
+  titlePlaintiffVersion?: number;
   titleDefendant: string;
+  titleDefendantVersion?: number;
 }
 
 export interface IEntry {
@@ -78,9 +106,12 @@ export interface IEntry {
   version: number;
   text: string;
   author: string;
-  role: "Klagepartei" | "Beklagtenpartei";
+  role: UserRole.Plaintiff | UserRole.Defendant;
   sectionId: string;
   associatedEntry?: string;
+  evidences?: IEvidence[];
+  evidenceIds: string[];
+  caveatOfProof: boolean;
 }
 
 export enum IDragItemType {
@@ -136,7 +167,7 @@ export interface ITool {
 }
 
 export interface IStateUserInput {
-  usage: UsageMode.Open | UsageMode.Create | undefined;
+  usage: UsageMode.Open | UsageMode.Create | UsageMode.Readonly | undefined;
   role: UserRole | undefined;
   prename: string;
   surname: string;
@@ -144,7 +175,23 @@ export interface IStateUserInput {
   basisdokumentFile: string;
   editFile: string;
   basisdokumentFilename: string;
+  coverFilename: string;
   editFilename: string;
   errorText: string;
-  newVersionMode: boolean;
+  newVersionMode: boolean | undefined;
+}
+
+export interface IEvidence {
+  id: string;
+  name: string;
+  hasAttachment: boolean;
+  version: number;
+  //isCurrentEntry: boolean;
+  role: UserRole;
+  tag?: string;
+  attachmentId?: string;
+  isInEditMode: boolean;
+  hasImageFile: boolean;
+  imageFile?: string;
+  imageFilename?: string;
 }

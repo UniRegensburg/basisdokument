@@ -4,9 +4,11 @@ export function createBasisdokument(
   prename: IStateUserInput["prename"],
   surname: IStateUserInput["surname"],
   role: IStateUserInput["role"],
-  caseId: IStateUserInput["caseId"]
+  caseId: IStateUserInput["caseId"],
+  fileId: string
 ) {
   const basisdokumentObject: any = {};
+  basisdokumentObject["fileId"] = fileId;
   basisdokumentObject["caseId"] = caseId;
   basisdokumentObject["currentVersion"] = 1;
   basisdokumentObject["versions"] = [];
@@ -18,19 +20,23 @@ export function createBasisdokument(
   basisdokumentObject["metadata"] = { plaintiff: "", defendant: "" };
   basisdokumentObject["entries"] = [];
   basisdokumentObject["sections"] = [];
+  basisdokumentObject["evidences"] = [];
+  basisdokumentObject["evidencesNumPlaintiff"] = [];
+  basisdokumentObject["evidencesNumDefendant"] = [];
+  basisdokumentObject["plaintiffFileVolume"] = 0;
+  basisdokumentObject["defendantFileVolume"] = 0;
   basisdokumentObject["judgeHints"] = [];
   basisdokumentObject["litigiousChecks"] = [];
   return basisdokumentObject;
 }
 
 export function createEditFile(
-  prename: IStateUserInput["prename"],
-  surname: IStateUserInput["surname"],
-  role: IStateUserInput["role"],
   caseId: IStateUserInput["caseId"],
+  fileId: string,
   version: number
 ) {
   const editFileObject: any = {};
+  editFileObject["fileId"] = fileId;
   editFileObject["caseId"] = caseId;
   editFileObject["currentVersion"] = version;
   editFileObject["highlightedEntries"] = [];

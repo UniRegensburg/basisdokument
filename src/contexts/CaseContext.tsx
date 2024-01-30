@@ -15,7 +15,10 @@ import {
 } from "../types";
 import { useSection } from "./SectionContext";
 import { v4 as uuidv4 } from "uuid";
+import { FilterTypes } from "../util/get-evidences";
 interface ICaseContext {
+  fileId: string;
+  setFileId: Dispatch<SetStateAction<string>>;
   caseId: string;
   setCaseId: Dispatch<SetStateAction<string>>;
   metaData: IMetaData;
@@ -32,6 +35,8 @@ interface ICaseContext {
   setIndividualEntrySorting: Dispatch<
     SetStateAction<{ [key: string]: IndividualEntrySortingEntry[] }>
   >;
+  evidenceFilters: FilterTypes[];
+  setEvidenceFilters: Dispatch<SetStateAction<FilterTypes[]>>;
 }
 
 export const CaseContext = createContext<ICaseContext | null>(null);
@@ -66,7 +71,9 @@ export const getEntryById = (entries: IEntry[], id: string) => {
 
 export const CaseProvider: React.FC<CaseProviderProps> = ({ children }) => {
   const [entries, setEntries] = useState<IEntry[]>([]);
+  const [fileId, setFileId] = useState<string>("");
   const [caseId, setCaseId] = useState<string>("");
+  const [evidenceFilters, setEvidenceFilters] = useState<FilterTypes[]>([]);
   const [metaData, setMetaData] = useState<IMetaData>({
     plaintiff: "",
     defendant: "",
@@ -173,6 +180,8 @@ export const CaseProvider: React.FC<CaseProviderProps> = ({ children }) => {
   return (
     <CaseContext.Provider
       value={{
+        fileId,
+        setFileId,
         caseId,
         setCaseId,
         currentVersion,
@@ -187,6 +196,8 @@ export const CaseProvider: React.FC<CaseProviderProps> = ({ children }) => {
         setHighlightedEntries,
         individualEntrySorting,
         setIndividualEntrySorting,
+        evidenceFilters,
+        setEvidenceFilters,
       }}>
       {children}
     </CaseContext.Provider>

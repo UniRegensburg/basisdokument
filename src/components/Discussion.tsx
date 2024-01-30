@@ -1,6 +1,6 @@
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
-import { useCase, useHeaderContext, useSection } from "../contexts";
+import { useCase, useHeaderContext, useSection, useUser } from "../contexts";
 import { Sorting, UserRole } from "../types";
 import { getOriginalSortingPosition } from "../util/get-original-sorting-position";
 import { getRequestedSorting } from "../util/get-requested-sorting";
@@ -10,10 +10,16 @@ import { EntryList } from "./entry";
 import { JudgeDiscussion } from "./JudgeDiscussion";
 import { MetaData } from "./metadata/MetaData";
 import { SectionHeader } from "./section-header/SectionHeader";
+import { MetaDataHeader } from "./metadata/MetaDataHeader";
+import { useState } from "react";
 
 export const Discussion = () => {
+  const [isBodyOpenPlaintiff, setIsBodyOpenPlaintiff] = useState<boolean>(true);
+  const [isBodyOpenDefendant, setIsBodyOpenDefendant] = useState<boolean>(true);
+
   const { groupedEntries } = useCase();
   const { sectionList, individualSorting } = useSection();
+  const { user } = useUser();
 
   const {
     selectedSorting,
@@ -25,8 +31,8 @@ export const Discussion = () => {
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="bg-offWhite h-full overflow-y-scroll py-28 px-4 space-y-4 scroll-smooth">
-        <div className="max-w-[1200px] m-auto">
+      <div className="bg-offWhite h-full overflow-y-scroll py-8 px-4 space-y-4 scroll-smooth">
+        <div className="max-w-[1500px] m-auto">
           {highlightElementsWithSpecificVersion ? (
             <div className="flex justify-center z-[30] relative">
               <div className="fixed flex justify-center items-center -mt-24">
@@ -47,9 +53,25 @@ export const Discussion = () => {
               </div>
             </div>
           ) : null}
-          <div className="grid grid-cols-2 gap-6 mb-16">
-            <MetaData owner={UserRole.Plaintiff} />
-            <MetaData owner={UserRole.Defendant} />
+          <div className="grid grid-cols-2 gap-6 ml-[40px]">
+            <MetaDataHeader
+              owner={UserRole.Plaintiff}
+              isBodyOpen={isBodyOpenPlaintiff}
+              setIsBodyOpen={setIsBodyOpenPlaintiff}
+            />
+            <MetaDataHeader
+              owner={UserRole.Defendant}
+              isBodyOpen={isBodyOpenDefendant}
+              setIsBodyOpen={setIsBodyOpenDefendant}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-6 ml-[40px] mt-4">
+            {isBodyOpenPlaintiff ? (
+              <MetaData owner={UserRole.Plaintiff} />
+            ) : (
+              <div></div>
+            )}
+            {isBodyOpenDefendant && <MetaData owner={UserRole.Defendant} />}
           </div>
           {selectedSorting === Sorting.Privat && showEntrySorting ? (
             <JudgeDiscussion />
@@ -64,26 +86,35 @@ export const Discussion = () => {
 
                 return (
                   <div key={section.id}>
-                    <SectionHeader
-                      sectionId={getOriginalSortingPosition(
-                        sectionList,
-                        section.id
-                      )}
-                      section={section}
-                      position={index}
-                    />
-                    <div className="space-y-4">
-                      <EntryList
-                        entries={sectionEntries?.parent || []}
-                        sectionId={section.id}
+                    {user?.role !== UserRole.Client && (
+                      <AddSection sectionIdAfter={section.id} />
+                    )}
+                    <div key={section.id}>
+                      <SectionHeader
+                        sectionId={getOriginalSortingPosition(
+                          sectionList,
+                          section.id
+                        )}
+                        section={section}
+                        position={index}
                       />
+                      <div className="space-y-4 ml-[40px]">
+                        <EntryList
+                          entriesList={sectionEntries?.parent || []}
+                          sectionId={section.id}
+                        />
+
+                        {user?.role !== UserRole.Client && (
+                          <AddEntryButtons sectionId={section.id} />
+                        )}
+                      </div>
                     </div>
                   </div>
                 );
               })}
             </>
           )}
-          <AddSection />
+          {user?.role !== UserRole.Client && <AddSection />}
         </div>
       </div>
     </DndProvider>

@@ -1,28 +1,44 @@
 import cx from "classnames";
-import { Pencil } from "phosphor-react";
+import { ArrowBendDownRight, PencilSimple } from "phosphor-react";
 import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
 import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
 import { EditText } from "react-edit-text";
 import "react-edit-text/dist/index.css";
 import { toast } from "react-toastify";
 import { v4 as uuidv4 } from "uuid";
-import { useCase, useHeaderContext, useSection } from "../../contexts";
+import {
+  useCase,
+  useEntries,
+  useHeaderContext,
+  useSection,
+} from "../../contexts";
 import { useUser } from "../../contexts/UserContext";
+import { useView } from "../../contexts/ViewContext";
 import { getTheme } from "../../themes/getTheme";
-import { IEntry, IndividualEntrySortingEntry, UserRole } from "../../types";
+import {
+  IEntry,
+  IEvidence,
+  IndividualEntrySortingEntry,
+  UserRole,
+  ViewMode,
+} from "../../types";
+import { getEntryCode } from "../../util/get-entry-code";
 import { getOriginalSortingPosition } from "../../util/get-original-sorting-position";
 import { Button } from "../Button";
-import { ErrorPopup } from "../ErrorPopup";
+import { ErrorPopup } from "../popups/ErrorPopup";
 import { Tooltip } from "../Tooltip";
 import { EntryForm } from "./EntryForm";
 import { EntryHeader } from "./EntryHeader";
+import { getEvidenceIds } from "../../util/get-evidences";
+import { useEvidence } from "../../contexts/EvidenceContext";
 
 interface NewEntryProps {
-  roleForNewEntry: "Klagepartei" | "Beklagtenpartei";
+  roleForNewEntry: UserRole.Plaintiff | UserRole.Defendant;
   setIsNewEntryVisible: Dispatch<SetStateAction<boolean>>;
   sectionId: string;
   idFollowingEntry?: string;
   associatedEntry?: string;
+  onClose?: (id: string) => void;
 }
 
 export const NewEntry: React.FC<NewEntryProps> = ({
@@ -31,21 +47,31 @@ export const NewEntry: React.FC<NewEntryProps> = ({
   sectionId,
   idFollowingEntry,
   associatedEntry,
+  onClose,
 }) => {
   const { selectedTheme } = useHeaderContext();
   const [isExpanded, setIsExpanded] = useState<boolean>(true);
   const [isErrorVisible, setIsErrorVisible] = useState<boolean>(false);
   const [authorName, setAuthorName] = useState<string>("");
   const { user } = useUser();
+  const { view } = useView();
   const { currentVersion, entries, setEntries, setIndividualEntrySorting } =
     useCase();
   const { sectionList } = useSection();
+  const { updateEvidenceList, setPlaintiffFileVolume, setDefendantFileVolume } =
+    useEvidence();
+  const { setEntryIdOpen } = useEntries();
 
   const isPlaintiff = roleForNewEntry === UserRole.Plaintiff;
   const entryCodePrefix = isPlaintiff ? "K" : "B";
   const sectionNumber = getOriginalSortingPosition(sectionList, sectionId);
 
-  const createEntry = (plainText: string, rawHtml: string) => {
+  const createEntry = (
+    plainText: string,
+    rawHtml: string,
+    evidences: IEvidence[],
+    caveatOfProof: boolean
+  ) => {
     if (plainText.length === 0) {
       toast("Bitte geben sie einen Text ein.", { type: "error" });
       return;
@@ -54,15 +80,21 @@ export const NewEntry: React.FC<NewEntryProps> = ({
     const newEntryCount =
       entries.filter((entry) => entry.sectionId === sectionId).length + 1;
 
+    const newEvidenceIds = getEvidenceIds(evidences);
+
     const entry: IEntry = {
       id: uuidv4(),
+      caveatOfProof: caveatOfProof,
       entryCode: `${entryCodePrefix}-${sectionNumber}-${newEntryCount}`,
       author: authorName || user!.name,
       role: roleForNewEntry,
       sectionId,
       text: rawHtml,
       version: currentVersion,
+      evidenceIds: newEvidenceIds,
     };
+
+    updateEvidenceList(evidences, entries);
 
     if (associatedEntry) {
       entry.associatedEntry = associatedEntry;
@@ -75,6 +107,30 @@ export const NewEntry: React.FC<NewEntryProps> = ({
     const columnIndex = isPlaintiff ? 0 : 1;
     individualEntrySortingEntry.columns[columnIndex].push(entry.id);
 
+    // TODO: where to add new entries?
+
+    // if (associatedEntry) {
+    //   const indexOdd = entries
+    //     .filter((en) => en.role !== roleForNewEntry)
+    //     .findIndex((en) => en.id === associatedEntry);
+
+    //   const entryToOrderIn = entries.filter(
+    //     (en) => en.role === roleForNewEntry
+    //   )[indexOdd];
+
+    //   const index =
+    //     roleForNewEntry === UserRole.Plaintiff
+    //       ? entries.indexOf(entryToOrderIn) + 1
+    //       : entries.indexOf(entryToOrderIn);
+    //   setEntries((prevEntries) => [
+    //     ...prevEntries.slice(0, index),
+    //     entry,
+    //     ...prevEntries.slice(index),
+    //   ]);
+    // } else {
+    //   setEntries((prevEntries) => [...prevEntries, entry]);
+    // }
+
     if (idFollowingEntry) {
       const i = entries.findIndex((entr) => entr.id === idFollowingEntry);
       setEntries((prevEntries) => [
@@ -85,6 +141,7 @@ export const NewEntry: React.FC<NewEntryProps> = ({
     } else {
       setEntries((prevEntries) => [...prevEntries, entry]);
     }
+    // END OF TODO
 
     setIndividualEntrySorting((prevEntrySorting) => {
       const newEntrySorting = { ...prevEntrySorting };
@@ -94,6 +151,8 @@ export const NewEntry: React.FC<NewEntryProps> = ({
 
     setIsNewEntryVisible(false);
     setIsExpanded(false);
+    setEntryIdOpen(null);
+    if (associatedEntry && onClose) onClose(associatedEntry);
   };
 
   const closeNewEntryForm = (plainText: string, _: string) => {
@@ -103,6 +162,8 @@ export const NewEntry: React.FC<NewEntryProps> = ({
     }
     setIsNewEntryVisible(false);
     setIsExpanded(false);
+    setEntryIdOpen(null);
+    if (associatedEntry && onClose) onClose(associatedEntry);
   };
 
   useEffect(() => {
@@ -112,64 +173,104 @@ export const NewEntry: React.FC<NewEntryProps> = ({
   return (
     <>
       <div
-        className={cx(
-          "flex flex-col mt-4 transition-all rounded-lg bg-white shadow",
-          {
-            "w-[calc(50%_-_12px)]": !isExpanded,
-            "w-full": isExpanded,
-            "self-start": isPlaintiff,
-            "self-end": !isPlaintiff,
-          }
-        )}>
-        {/* NewEntry Header */}
-        <EntryHeader
-          className="rounded-b-none cursor-default"
-          isPlaintiff={isPlaintiff}>
-          <EditText
-            inputClassName={cx(
-              "font-bold h-[28px] p-0 my-0 focus:outline-none bg-transparent",
+        className={cx("flex flex-col mt-4 transition-all rounded-lg ", {
+          "w-[calc(50%_-_12px)]": !isExpanded && view !== ViewMode.SideBySide,
+          "w-full": isExpanded || view !== ViewMode.SideBySide,
+          "self-start": isPlaintiff,
+          "self-end": !isPlaintiff,
+        })}>
+        {associatedEntry && (
+          <a
+            href={`#${getEntryCode(entries, associatedEntry)}`}
+            className={cx(
+              "flex flex-row gap-1 self-center text-xs font-normal rounded-t-md p-1 w-fit h-50 -mt-50 hover:text-white",
               {
-                [`border-${getTheme(selectedTheme)?.primaryPlaintiff}`]:
-                  isPlaintiff,
-                [`border-${getTheme(selectedTheme)?.primaryDefendant}`]:
-                  !isPlaintiff,
+                [`mr-0 ml-auto bg-${
+                  getTheme(selectedTheme)?.primaryPlaintiff
+                } text-${getTheme(selectedTheme)?.secondaryPlaintiff}`]:
+                  roleForNewEntry === UserRole.Defendant,
+                [`ml-0 mr-auto bg-${
+                  getTheme(selectedTheme)?.primaryDefendant
+                } text-${getTheme(selectedTheme)?.secondaryDefendant}`]:
+                  roleForNewEntry === UserRole.Plaintiff,
               }
             )}
-            className={cx("font-bold p-0 my-0 flex items-center mr-2", {
-              [`text-${getTheme(selectedTheme)?.primaryPlaintiff}`]:
-                isPlaintiff,
-              [`text-${getTheme(selectedTheme)?.primaryDefendant}`]:
-                !isPlaintiff,
-            })}
-            value={authorName}
-            onChange={(e) => {
-              setAuthorName(e.target.value);
+            onClick={(e) => e.stopPropagation()}>
+            <ArrowBendDownRight size={14}></ArrowBendDownRight>
+            {`Bezieht sich auf ${getEntryCode(entries, associatedEntry)}`}
+          </a>
+        )}
+        <div
+          className={cx("", {
+            [`pr-1 rounded-l-xl rounded-br-lg bg-${
+              getTheme(selectedTheme)?.primaryPlaintiff
+            }`]: roleForNewEntry === UserRole.Defendant && associatedEntry,
+            [`pl-1 rounded-r-xl rounded-bl-lg bg-${
+              getTheme(selectedTheme)?.primaryDefendant
+            }`]: roleForNewEntry === UserRole.Plaintiff && associatedEntry,
+          })}>
+          {/* NewEntry Header */}
+          <EntryHeader
+            className="rounded-b-none cursor-default shadow"
+            isPlaintiff={isPlaintiff}>
+            <EditText
+              inputClassName={cx(
+                "font-bold h-[28px] p-0 my-0 focus:outline-none bg-transparent",
+                {
+                  [`border-${getTheme(selectedTheme)?.primaryPlaintiff}`]:
+                    isPlaintiff,
+                  [`border-${getTheme(selectedTheme)?.primaryDefendant}`]:
+                    !isPlaintiff,
+                }
+              )}
+              className={cx("font-bold p-0 my-0 flex items-center mr-2", {
+                [`text-${getTheme(selectedTheme)?.primaryPlaintiff}`]:
+                  isPlaintiff,
+                [`text-${getTheme(selectedTheme)?.primaryDefendant}`]:
+                  !isPlaintiff,
+              })}
+              value={authorName}
+              onChange={(e) => {
+                setAuthorName(e.target.value);
+              }}
+              showEditButton
+              editButtonContent={
+                <Tooltip asChild text="Name bearbeiten">
+                  <PencilSimple />
+                </Tooltip>
+              }
+              editButtonProps={{
+                className: cx("bg-transparent flex items-center"),
+              }}
+            />
+          </EntryHeader>
+          {/* Toolbar */}
+          <EntryForm
+            caveatOfProof={false}
+            isPlaintiff={isPlaintiff}
+            isExpanded={isExpanded}
+            setIsExpanded={() => {
+              setIsExpanded(!isExpanded);
             }}
-            showEditButton
-            editButtonContent={
-              <Tooltip asChild text="Name bearbeiten">
-                <Pencil />
-              </Tooltip>
-            }
-            editButtonProps={{
-              className: cx("bg-transparent flex items-center"),
+            onAbort={(plainText, rawHtml) => {
+              closeNewEntryForm(plainText, rawHtml);
+              setEntryIdOpen(null);
             }}
+            onSave={(
+              plainText,
+              rawHtml,
+              evidences,
+              caveatOfProof,
+              plaintiffFileVolume,
+              defendantFileVolume
+            ) => {
+              createEntry(plainText, rawHtml, evidences, caveatOfProof);
+              setPlaintiffFileVolume(plaintiffFileVolume);
+              setDefendantFileVolume(defendantFileVolume);
+            }}
+            evidences={[]}
           />
-        </EntryHeader>
-        {/* Toolbar */}
-        <EntryForm
-          isPlaintiff={isPlaintiff}
-          isExpanded={isExpanded}
-          setIsExpanded={() => {
-            setIsExpanded(!isExpanded);
-          }}
-          onAbort={(plainText, rawHtml) => {
-            closeNewEntryForm(plainText, rawHtml);
-          }}
-          onSave={(plainText, rawHtml) => {
-            createEntry(plainText, rawHtml);
-          }}
-        />
+        </div>
       </div>
       <ErrorPopup isVisible={isErrorVisible}>
         <div className="flex flex-col items-center justify-center space-y-8">
@@ -192,6 +293,7 @@ export const NewEntry: React.FC<NewEntryProps> = ({
               onClick={() => {
                 setIsErrorVisible(false);
                 setIsNewEntryVisible(false);
+                setEntryIdOpen(null);
               }}>
               Verwerfen
             </Button>

@@ -1,9 +1,11 @@
 import cx from "classnames";
-import { Trash, Upload } from "phosphor-react";
-import { useRef, useState } from "react";
+import { Trash, Upload, Info } from "phosphor-react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { AboutDevelopersMenu } from "../components/AboutDevelopersMenu";
 import { Button } from "../components/Button";
+import { v4 as uuidv4 } from "uuid";
+import { Tooltip } from "../components/Tooltip";
 import {
   useBookmarks,
   useCase,
@@ -12,6 +14,8 @@ import {
   useNotes,
   useUser,
   useSection,
+  usePatchnotes,
+  useImprint,
 } from "../contexts";
 import {
   createBasisdokument,
@@ -23,14 +27,29 @@ import {
   openEditFile,
   updateSortingsIfVersionIsDifferent,
 } from "../data-management/opening-handler";
-import { IStateUserInput, IUser, UsageMode, UserRole } from "../types";
+import {
+  IEntry,
+  IEvidence,
+  IStateUserInput,
+  IUser,
+  SidebarState,
+  UsageMode,
+  UserRole,
+} from "../types";
 import "react-toastify/dist/ReactToastify.css";
 import Cookies from "js-cookie";
 import { useOnboarding } from "../contexts/OnboardingContext";
+import { VersionPopup } from "../components/popups/VersionPopup";
+import { useSidebar } from "../contexts/SidebarContext";
+import { useEvidence } from "../contexts/EvidenceContext";
+import { ImprintPopup } from "../components/popups/ImprintPopup";
+import { PatchnotesPopup } from "../components/popups/PatchnotesPopup";
 
 interface AuthProps {
   setIsAuthenticated: (isAuthenticated: boolean) => void;
 }
+
+//TODO: Evidences richtig zuordnen!!!!!
 
 export const Auth: React.FC<AuthProps> = ({ setIsAuthenticated }) => {
   // States for the form
@@ -48,7 +67,15 @@ export const Auth: React.FC<AuthProps> = ({ setIsAuthenticated }) => {
     useState<IStateUserInput["editFile"]>("");
   const [errorText, setErrorText] = useState<IStateUserInput["errorText"]>("");
   const [newVersionMode, setNewVersionMode] =
-    useState<IStateUserInput["newVersionMode"]>(false);
+    useState<IStateUserInput["newVersionMode"]>(undefined);
+  const [showVersionPopup, setShowVersionPopup] = useState<boolean>(false);
+  const [isReadonly] = useState<boolean>(
+    window.location.hostname.includes("mandant")
+  );
+  const [isValidBasisdokumentFile, setIsValidBasisdokumentFile] =
+    useState<boolean>(true);
+  const [isValidEditFile, setIsValidEditFile] = useState<boolean>(true);
+  const [isMatchingFiles, setIsMatchingFiles] = useState<boolean>(true);
 
   // Refs
   const basisdokumentFileUploadRef = useRef<HTMLInputElement>(null);
@@ -57,6 +84,7 @@ export const Auth: React.FC<AuthProps> = ({ setIsAuthenticated }) => {
   // Contexts to set the state globally
   const {
     setCaseId: setCaseIdContext,
+    setFileId,
     setEntries,
     setMetaData,
     setCurrentVersion,
@@ -71,6 +99,16 @@ export const Auth: React.FC<AuthProps> = ({ setIsAuthenticated }) => {
   const { setBookmarks } = useBookmarks();
   const { setUser } = useUser();
   const { setIsOnboardingVisible } = useOnboarding();
+  const { setActiveSidebar } = useSidebar();
+  const { showPatchnotesPopup } = usePatchnotes();
+  const { showImprintPopup } = useImprint();
+  const {
+    updateEvidenceList,
+    setEvidenceIdsPlaintiff,
+    setEvidenceIdsDefendant,
+    setPlaintiffFileVolume,
+    setDefendantFileVolume,
+  } = useEvidence();
 
   // Set React states when user enters/changes text input fields
   const onChangeGivenPrename = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -84,7 +122,7 @@ export const Auth: React.FC<AuthProps> = ({ setIsAuthenticated }) => {
   };
 
   const onChangeGivenCaseId = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value;
+    const newValue: string = e.target.value;
     setCaseId(newValue);
   };
 
@@ -99,6 +137,7 @@ export const Auth: React.FC<AuthProps> = ({ setIsAuthenticated }) => {
         setBasisdokumentFile(result);
       };
       e.target.value = "";
+      setShowVersionPopup(true);
     } catch (error) {}
   };
 
@@ -117,143 +156,265 @@ export const Auth: React.FC<AuthProps> = ({ setIsAuthenticated }) => {
 
   // The onboarding should only be displayed when if the user opens a basisdokument for the first time.
   // It is still possible to access the onboarding via the ?-icon in the header.
+  // The onboarding is also not shown with 'mandantendomain'
   const checkOnboardingShownBefore = () => {
-    if (Cookies.get("onboarding") === undefined) {
+    if (
+      Cookies.get("onboarding") === undefined &&
+      usage !== UsageMode.Readonly
+    ) {
       Cookies.set("onboarding", "true");
       setIsOnboardingVisible(true);
     }
   };
 
-  const validateUserInput = () => {
-    // Before checking every user input we set the validation state to true.
-    let inputIsValid: boolean = true;
-
-    // check if file exists and validate
-    if (usage === UsageMode.Open) {
-      if (
-        !basisdokumentFilename.endsWith(".json") ||
-        typeof basisdokumentFile !== "string" ||
-        !basisdokumentFile
-      ) {
-        setErrorText(
-          "Bitte laden Sie eine valide Basisdokumentdatei (.json) hoch!"
-        );
-        inputIsValid = false;
-      } else {
-        if (jsonToObject(basisdokumentFile).fileType !== "basisdokument") {
-          setErrorText(
-            "Bitte laden Sie eine valide Basisdokumentdatei (.json) hoch!"
-          );
-          inputIsValid = false;
-        }
-      }
-      if (editFile) {
-        if (!editFilename.endsWith(".json") || typeof editFile !== "string") {
-          setErrorText(
-            "Bitte laden Sie eine valide Bearbeitungsdatei (.json) hoch!"
-          );
-          inputIsValid = false;
-        } else {
-          if (jsonToObject(editFile).fileType !== "editFile") {
-            setErrorText(
-              "Bitte laden Sie eine valide Bearbeitungsdatei (.json) hoch!"
-            );
-            inputIsValid = false;
-          }
-        }
-      }
-    }
-    if (caseId === "" && usage === UsageMode.Create) {
-      setErrorText("Bitte geben Sie ein gültiges Aktenzeichen an!");
-      inputIsValid = false;
-    }
-
-    if (prename === "" || surname === "") {
+  const isValidUsageMode = () => {
+    if (
+      usage !== UsageMode.Open &&
+      usage !== UsageMode.Create &&
+      usage !== UsageMode.Readonly
+    ) {
       setErrorText(
-        "Bitte geben Sie sowohl Ihren Vornamen als auch einen Nachnamen an!"
+        "Bitte spezifizieren Sie, ob Sie ein Basisdokument öffnen, erstellen oder einsehen möchten!"
       );
-      inputIsValid = false;
+      return false;
     }
+    return true;
+  };
+
+  const isValidRole = () => {
     if (!role) {
       setErrorText(
         "Bitte spezifizieren Sie, ob Sie das Basisdokument als Klagepartei, Beklagtenpartei oder Richter:in bearbeiten möchten!"
       );
-      inputIsValid = false;
+      return false;
     }
+    return true;
+  };
 
-    if (usage !== UsageMode.Open && usage !== UsageMode.Create) {
+  const isValidNames = () => {
+    if ((prename === "" || surname === "") && usage !== UsageMode.Readonly) {
       setErrorText(
-        "Bitte spezifizieren Sie, ob Sie ein Basisdokument öffnen oder erstellen möchten!"
+        "Bitte geben Sie sowohl Ihren Vornamen als auch einen Nachnamen an!"
       );
-      inputIsValid = false;
+      return false;
     }
+    return true;
+  };
 
-    if (inputIsValid === true) {
-      let basisdokumentObject, editFileObject;
-
-      if (usage === UsageMode.Open && typeof basisdokumentFile == "string") {
-        basisdokumentObject = openBasisdokument(
-          basisdokumentFile,
-          newVersionMode,
-          prename,
-          surname,
-          role
+  const isValidFiles = () => {
+    // check if basisdokument file exists and has valid file format
+    if (usage === UsageMode.Open || usage === UsageMode.Readonly) {
+      if (
+        !basisdokumentFilename.endsWith(".txt") ||
+        typeof basisdokumentFile !== "string" ||
+        !basisdokumentFile
+      ) {
+        setIsValidBasisdokumentFile(false);
+        setErrorText(
+          "Bitte laden Sie eine valide Basisdokumentdatei (.txt) hoch!"
         );
-        if (editFile) {
-          editFileObject = openEditFile(
-            basisdokumentFile,
-            editFile,
-            newVersionMode
+        return false;
+      } else {
+        if (jsonToObject(basisdokumentFile).fileType !== "basisdokument") {
+          setIsValidBasisdokumentFile(false);
+          setErrorText(
+            "Bitte laden Sie eine valide Basisdokumentdatei (.txt) hoch!"
           );
-        } else {
-          editFileObject = createEditFile(
-            prename,
-            surname,
-            role,
-            basisdokumentObject.caseId,
-            basisdokumentObject.currentVersion
-          );
-
-          editFileObject = updateSortingsIfVersionIsDifferent(
-            basisdokumentObject,
-            editFileObject
-          );
+          return false;
         }
       }
+      // check if edit file exists and has valid file format
+      if (editFile) {
+        if (!editFilename.endsWith(".txt") || typeof editFile !== "string") {
+          setIsValidEditFile(false);
+          setErrorText(
+            "Bitte laden Sie eine valide Bearbeitungsdatei (.txt) hoch!"
+          );
+          return false;
+        } else {
+          if (jsonToObject(editFile).fileType !== "editFile") {
+            setIsValidEditFile(false);
+            setErrorText(
+              "Bitte laden Sie eine valide Bearbeitungsdatei (.txt) hoch!"
+            );
+            return false;
+          }
+        }
+      }
+      // check if basisdokument and edit files are matching
+      if (basisdokumentFile && editFile) {
+        const basisdokId = jsonToObject(basisdokumentFile).fileId;
+        const editId = jsonToObject(editFile).fileId;
+        if (
+          basisdokId &&
+          basisdokId.length > 0 &&
+          editId &&
+          editId.length > 0 &&
+          basisdokId !== editId
+        ) {
+          setIsMatchingFiles(false);
+          setErrorText(
+            "Die hochgeladene Bearbeitungsdatei passt nicht zum hochgeladenen Basisdokument."
+          );
+          return false;
+        }
+      }
+    }
+    return true;
+  };
 
-      if (usage === UsageMode.Create) {
-        basisdokumentObject = createBasisdokument(
-          prename,
-          surname,
-          role,
-          caseId
+  const validateUserInputAndOpen = () => {
+    if (!isValidUsageMode()) return;
+    if (!isValidRole()) return;
+    if (!isValidNames()) return;
+    if (!isValidFiles()) return;
+
+    let basisdokumentObject, editFileObject;
+
+    if (
+      (usage === UsageMode.Open || usage === UsageMode.Readonly) &&
+      typeof basisdokumentFile == "string"
+    ) {
+      basisdokumentObject = openBasisdokument(
+        basisdokumentFile,
+        newVersionMode,
+        prename,
+        surname,
+        role
+      );
+      if (editFile) {
+        editFileObject = openEditFile(
+          basisdokumentFile,
+          editFile,
+          newVersionMode
         );
-        editFileObject = createEditFile(prename, surname, role, caseId, 1);
-        toast("Ihr Basisdokument wurde erfolgreich erstellt!");
+      } else {
+        editFileObject = createEditFile(
+          basisdokumentObject.caseId,
+          basisdokumentObject.fileId,
+          basisdokumentObject.currentVersion
+        );
+
+        editFileObject = updateSortingsIfVersionIsDifferent(
+          basisdokumentObject,
+          editFileObject
+        );
       }
 
-      const user: IUser = {
-        name: `${prename} ${surname}`,
-        role: role!,
-      };
-
-      setUser(user);
-      setContextFromBasisdokument(basisdokumentObject);
-      setContextFromEditFile(editFileObject);
-      checkOnboardingShownBefore();
-      setIsAuthenticated(true);
+      // ensure compatibility with older releases (matching fileId feature)
+      const basisdokFileId = basisdokumentObject["fileId"];
+      const editFileId = editFileObject["fileId"];
+      const basisdokHasId = basisdokFileId && basisdokFileId.length > 0;
+      const editHasId = editFileId && editFileId.length > 0;
+      if (!basisdokHasId && !editHasId) {
+        const id = uuidv4();
+        basisdokumentObject["fileId"] = id;
+        editFileObject["fileId"] = id;
+        setFileId(id);
+      } else if (basisdokHasId && !editHasId) {
+        editFileObject["fileId"] = basisdokFileId;
+        setFileId(basisdokFileId);
+      } else if (!basisdokHasId && editHasId) {
+        basisdokumentObject["fileId"] = editFileId;
+        setFileId(editFileId);
+      }
     }
+
+    if (usage === UsageMode.Create) {
+      const fileId = uuidv4();
+      setFileId(fileId);
+      basisdokumentObject = createBasisdokument(
+        prename,
+        surname,
+        role,
+        caseId,
+        fileId
+      );
+      editFileObject = createEditFile(caseId, fileId, 1);
+      toast("Ihr Basisdokument wurde erfolgreich erstellt!");
+    }
+
+    const user: IUser = {
+      name: `${prename} ${surname}`,
+      role: role!,
+    };
+
+    setUser(user);
+    setContextFromBasisdokument(basisdokumentObject);
+    setContextFromEditFile(editFileObject);
+    checkOnboardingShownBefore();
+    setIsAuthenticated(true);
   };
 
   // The imported data from the files is then merged into a React state (context provider).
   const setContextFromBasisdokument = (basisdokument: any) => {
     setVersionHistory(basisdokument.versions);
-    setEntries(basisdokument.entries);
+    //if evidences are already in own list
+    if (basisdokument.evidences) {
+      setEntries(basisdokument.entries);
+      updateEvidenceList(basisdokument.evidences, []);
+      setEvidenceIdsPlaintiff(basisdokument.evidencesNumPlaintiff);
+      setEvidenceIdsDefendant(basisdokument.evidencesNumDefendant);
+      if (basisdokument.plaintiffFileVolume) {
+        setPlaintiffFileVolume(basisdokument.plaintiffFileVolume);
+      } else {
+        setDefendantFileVolume(0);
+      }
+      if (basisdokument.defendantFileVolume) {
+        setDefendantFileVolume(basisdokument.defendantFileVolume);
+      } else {
+        setDefendantFileVolume(0);
+      }
+    } else {
+      //if evidences are not already in own list
+      let newEvidenceList: IEvidence[] = [];
+      let updatedEntries: IEntry[] = [];
+      let oldEntries = basisdokument.entries;
+      for (let i = 0; i < oldEntries.length; i++) {
+        if (oldEntries[i].evidences) {
+          let updatedEntry: IEntry = oldEntries[i];
+          let newEvIds: string[] = [];
+          for (let j = 0; j < oldEntries[i].evidences.length; j++) {
+            newEvIds.push(oldEntries[i].evidences[j].id);
+            //check if evidence is already in new evidence list
+            if (
+              !newEvidenceList.find(
+                (ev) => ev.id === oldEntries[i].evidences[j].id
+              )
+            ) {
+              newEvidenceList.push(oldEntries[i].evidences[j]);
+            }
+          }
+          updatedEntry["evidenceIds"] = newEvIds;
+          //delete outdated property after getting all data correctly
+          delete updatedEntry.evidences;
+          updatedEntries.push(updatedEntry);
+        } else {
+          updatedEntries.push(oldEntries[i]);
+        }
+      }
+      setEntries(updatedEntries);
+      updateEvidenceList(newEvidenceList, updatedEntries);
+      //set plaintiff/defendant arrays
+      let newPlaintiffArr: string[] = [];
+      let newDefendantArr: string[] = [];
+      for (let i = 0; i < newEvidenceList.length; i++) {
+        if (newEvidenceList[i].hasAttachment) {
+          let newIndex = Number(newEvidenceList[i].attachmentId?.slice(2));
+          newEvidenceList[i].attachmentId?.includes("K")
+            ? newPlaintiffArr.splice(newIndex, 0, newEvidenceList[i].id)
+            : newDefendantArr.splice(newIndex, 0, newEvidenceList[i].id);
+        }
+      }
+      setEvidenceIdsPlaintiff(newPlaintiffArr);
+      setEvidenceIdsDefendant(newDefendantArr);
+    }
     setSectionList(basisdokument.sections);
     setHints(basisdokument.judgeHints);
     setMetaData(basisdokument.metaData);
     setCurrentVersion(basisdokument.currentVersion);
     setCaseIdContext(basisdokument.caseId);
+    setFileId(basisdokument.fileId);
   };
 
   const setContextFromEditFile = (editFile: any) => {
@@ -264,136 +425,194 @@ export const Auth: React.FC<AuthProps> = ({ setIsAuthenticated }) => {
     setIndividualSorting(editFile.individualSorting);
     setHighlightedEntries(editFile.highlightedEntries);
     setIndividualEntrySorting(editFile.individualEntrySorting);
+    setFileId(editFile.fileId);
   };
+
+  const setReadonly = () => {
+    if (usage !== UsageMode.Readonly) {
+      setErrorText("");
+    }
+    setUsage(UsageMode.Readonly);
+    setRole(UserRole.Client);
+    setNewVersionMode(false);
+    setActiveSidebar(SidebarState.Sorting);
+  };
+
+  useEffect(() => {
+    if (isReadonly) {
+      setReadonly();
+    }
+  });
 
   return (
     <div className="overflow-scroll h-full">
+      {showImprintPopup ? <ImprintPopup /> : null}
+      {showPatchnotesPopup ? <PatchnotesPopup /> : null}
       <div className="flex gap-4 max-w-[1080px] m-auto py-20 px-10 space-y-4 flex-col justify-center h-auto overflow-scroll no-scrollbar">
         <AboutDevelopersMenu />
         <h1 className="text-3xl font-bold">Das Basisdokument</h1>
-        <p className="text-md text-mediumGrey text-justify">
-          Diese Anwendung erlaubt Ihnen das Editieren und Erstellen eines
-          Basisdokuments. Bitte laden Sie den aktuellen Stand des Basisdokuments
-          in Form einer .json-Datei hoch, falls Sie an einer Version
-          weiterarbeiten wollen. Um persönliche Daten wie Markierungen,
-          Sortierungen und Lesezeichen zu laden, ist es notwendig, dass Sie auch
-          Ihre persönliche Bearbeitungsdatei hochladen. Das Basisdokument
-          verwendet keinen externen Server, um Daten zu speichern. Alle Daten,
-          die Sie hochladen, bleiben <b>im Browser Ihres Computers</b>. Das
-          Basisdokument kann schließlich als .json und .pdf exportiert werden
-          und somit an Dritte weitergegeben werden.
-        </p>
-        <div>
-          <p className="font-light">
-            Ich möchte ein Basisdokument:{" "}
-            <span className="text-darkRed">*</span>
+        {isReadonly ? (
+          <p className="text-md text-mediumGrey text-justify">
+            Diese Anwendung erlaubt Ihnen als Mandant:in das Einsehen eines
+            Basisdokuments. Dafür laden Sie bitte die .txt-Datei hoch, die Ihnen
+            Ihr Anwältin oder Ihr Anwalt zugesendet hat.
           </p>
-          <div className="flex flex-row w-auto mt-4 gap-4">
-            <button
-              onClick={() => {
-                if (usage !== UsageMode.Open) {
-                  setErrorText("");
-                }
-                setUsage(UsageMode.Open);
-              }}
-              className={cx(
-                "flex items-center justify-center w-[100px] h-[50px] font-bold rounded-md bg-offWhite hover:bg-lightGrey hover:cursor-pointer",
-                {
-                  "border-2 border-darkGrey": usage === UsageMode.Open,
-                }
-              )}>
-              Öffnen
-            </button>
-            <button
-              onClick={() => {
-                if (usage !== UsageMode.Create) {
-                  setErrorText("");
-                }
-                setUsage(UsageMode.Create);
-              }}
-              className={cx(
-                "flex items-center justify-center w-[100px] h-[50px] font-bold rounded-md bg-offWhite hover:bg-lightGrey hover:cursor-pointer",
-                {
-                  "border-2 border-darkGrey": usage === UsageMode.Create,
-                }
-              )}>
-              Erstellen
-            </button>
-          </div>
-        </div>
+        ) : (
+          <p className="text-md text-mediumGrey text-justify">
+            Diese Anwendung erlaubt Ihnen das Editieren und Erstellen eines
+            Basisdokuments. Bitte laden Sie den aktuellen Stand des
+            Basisdokuments in Form einer .txt-Datei hoch, falls Sie an einer
+            Version weiterarbeiten wollen. Um persönliche Daten wie
+            Markierungen, Sortierungen und Lesezeichen zu laden, ist es
+            notwendig, dass Sie auch Ihre persönliche Bearbeitungsdatei
+            hochladen. Das Basisdokument verwendet keinen externen Server, um
+            Daten zu speichern. Alle Daten, die Sie hochladen, bleiben{" "}
+            <b>im Browser Ihres Computers</b>. Das Basisdokument kann
+            schließlich als .txt und .pdf exportiert werden und somit an Dritte
+            weitergegeben werden.
+          </p>
+        )}
 
-        <div>
-          <p className="font-light">
-            Ich möchte das Basisdokument bearbeiten in der Funktion:{" "}
-            <span className="text-darkRed">*</span>
-          </p>
-          <div className="flex flex-row w-auto mt-4 gap-4">
-            <button
-              onClick={() => {
-                setRole(UserRole.Plaintiff);
-              }}
-              className={cx(
-                "flex items-center justify-center w-[150px] h-[50px] font-bold rounded-md bg-offWhite hover:bg-lightGrey hover:cursor-pointer",
-                {
-                  "border-2 border-darkGrey": role === "Klagepartei",
-                }
-              )}>
-              Klagepartei
-            </button>
-            <button
-              onClick={() => {
-                setRole(UserRole.Defendant);
-              }}
-              className={cx(
-                "flex items-center justify-center w-[150px] h-[50px] font-bold rounded-md bg-offWhite hover:bg-lightGrey hover:cursor-pointer",
-                {
-                  "border-2 border-darkGrey": role === "Beklagtenpartei",
-                }
-              )}>
-              Beklagtenpartei
-            </button>
-            <button
-              onClick={() => {
-                setRole(UserRole.Judge);
-              }}
-              className={cx(
-                "flex items-center justify-center w-[150px] h-[50px] font-bold rounded-md bg-offWhite hover:bg-lightGrey hover:cursor-pointer",
-                {
-                  "border-2 border-darkGrey": role === "Richter:in",
-                }
-              )}>
-              Richter:in
-            </button>
+        {!isReadonly && (
+          <div>
+            <div className="flex flex-row w-full justify-between font-light">
+              <p>
+                Ich möchte ein Basisdokument:{" "}
+                <span className="text-darkRed">*</span>
+              </p>
+              <p>
+                Oder:{" "}
+                <a href="https://mandant.parteivortrag.de/">
+                  Ich bin Mandant:in.
+                </a>
+              </p>
+            </div>
+
+            <div className="flex flex-row w-auto mt-4 gap-4">
+              {!isReadonly && (
+                <>
+                  <button
+                    onClick={() => {
+                      if (usage !== UsageMode.Open) {
+                        setErrorText("");
+                      }
+                      setUsage(UsageMode.Open);
+                    }}
+                    className={cx(
+                      "flex items-center justify-center w-[100px] h-[50px] font-bold rounded-md bg-offWhite hover:bg-lightGrey hover:cursor-pointer",
+                      {
+                        "border-2 border-darkGrey": usage === UsageMode.Open,
+                      }
+                    )}>
+                    Öffnen
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (usage !== UsageMode.Create) {
+                        setErrorText("");
+                      }
+                      setUsage(UsageMode.Create);
+                    }}
+                    className={cx(
+                      "flex items-center justify-center w-[100px] h-[50px] font-bold rounded-md bg-offWhite hover:bg-lightGrey hover:cursor-pointer",
+                      {
+                        "border-2 border-darkGrey": usage === UsageMode.Create,
+                      }
+                    )}>
+                    Erstellen
+                  </button>
+                  <button
+                    onClick={() => {
+                      setReadonly();
+                    }}
+                    className={cx(
+                      "flex items-center justify-center w-[100px] h-[50px] font-bold rounded-md bg-offWhite hover:bg-lightGrey hover:cursor-pointer",
+                      {
+                        "border-2 border-darkGrey":
+                          usage === UsageMode.Readonly,
+                      }
+                    )}>
+                    Einsehen
+                  </button>
+                </>
+              )}
+            </div>
           </div>
-        </div>
-        <div>
-          <p className="font-light">
-            Ich möchte das Basisdokument bearbeiten als:{" "}
-            <span className="text-darkRed">*</span>
-          </p>
-          <div className="flex flex-row w-auto mt-4 gap-4">
-            <input
-              className="p-2 pl-3 pr-3 h-[50px] bg-offWhite rounded-md outline-none"
-              type="text"
-              placeholder="Vorname..."
-              value={prename}
-              onChange={onChangeGivenPrename}
-            />
-            <input
-              className="p-2 pl-3 pr-3 h-[50px] bg-offWhite rounded-md outline-none"
-              type="text"
-              placeholder="Nachname..."
-              value={surname}
-              onChange={onChangeGivenSurname}
-            />
+        )}
+
+        {usage !== UsageMode.Readonly && (
+          <div className="flex gap-8 flex-col">
+            <div>
+              <p className="font-light">
+                Ich möchte das Basisdokument bearbeiten in der Funktion:{" "}
+                <span className="text-darkRed">*</span>
+              </p>
+              <div className="flex flex-row w-auto mt-4 gap-4">
+                <button
+                  onClick={() => {
+                    setRole(UserRole.Plaintiff);
+                  }}
+                  className={cx(
+                    "flex items-center justify-center w-[150px] h-[50px] font-bold rounded-md bg-offWhite hover:bg-lightGrey hover:cursor-pointer",
+                    {
+                      "border-2 border-darkGrey": role === UserRole.Plaintiff,
+                    }
+                  )}>
+                  {UserRole.Plaintiff}
+                </button>
+                <button
+                  onClick={() => {
+                    setRole(UserRole.Defendant);
+                  }}
+                  className={cx(
+                    "flex items-center justify-center w-[150px] h-[50px] font-bold rounded-md bg-offWhite hover:bg-lightGrey hover:cursor-pointer",
+                    {
+                      "border-2 border-darkGrey": role === UserRole.Defendant,
+                    }
+                  )}>
+                  {UserRole.Defendant}
+                </button>
+                <button
+                  onClick={() => {
+                    setRole(UserRole.Judge);
+                  }}
+                  className={cx(
+                    "flex items-center justify-center w-[150px] h-[50px] font-bold rounded-md bg-offWhite hover:bg-lightGrey hover:cursor-pointer",
+                    {
+                      "border-2 border-darkGrey": role === UserRole.Judge,
+                    }
+                  )}>
+                  {UserRole.Judge}
+                </button>
+              </div>
+            </div>
+            <div>
+              <p className="font-light">
+                Ich möchte das Basisdokument bearbeiten als:{" "}
+                <span className="text-darkRed">*</span>
+              </p>
+              <div className="flex flex-row w-auto mt-4 gap-4">
+                <input
+                  className="p-2 pl-3 pr-3 h-[50px] bg-offWhite rounded-md outline-none"
+                  type="text"
+                  placeholder="Vorname..."
+                  value={prename}
+                  onChange={onChangeGivenPrename}
+                />
+                <input
+                  className="p-2 pl-3 pr-3 h-[50px] bg-offWhite rounded-md outline-none"
+                  type="text"
+                  placeholder="Nachname..."
+                  value={surname}
+                  onChange={onChangeGivenSurname}
+                />
+              </div>
+            </div>
           </div>
-        </div>
+        )}
         {usage === UsageMode.Create ? (
           <div>
-            <p className="font-light">
-              Aktenzeichen diese Basisdokuments:{" "}
-              <span className="text-darkRed">*</span>
-            </p>
+            <p className="font-light">Aktenzeichen dieses Basisdokuments: </p>
             <div className="flex flex-row w-auto mt-4 gap-4">
               <input
                 className="p-2 pl-3 pr-3 h-[50px] bg-offWhite rounded-md outline-none"
@@ -405,95 +624,184 @@ export const Auth: React.FC<AuthProps> = ({ setIsAuthenticated }) => {
             </div>
           </div>
         ) : null}
-        {usage === UsageMode.Open ? (
+        {role && (usage === UsageMode.Open || usage === UsageMode.Readonly) ? (
           <div className="flex flex-col gap-4">
             <div>
               <p className="font-light">
-                Basisdokument-Dateien hochladen:{" "}
-                <span className="text-darkRed">*</span>
+                Basisdokument-
+                {isReadonly || usage === UsageMode.Readonly
+                  ? "Datei"
+                  : "Dateien"}{" "}
+                hochladen: <span className="text-darkRed">*</span>
               </p>
               <div className="flex flex-col items-start w-auto mt-8 mb-8 gap-4">
                 <div className="flex flex-row items-center justify-center gap-2">
-                  <span className="font-semibold">
-                    Basisdokument: <span className="text-darkRed">*</span>
+                  <div className="flex flex-row gap-0.5">
+                    <span className="font-semibold">
+                      Basisdokument: <span className="text-darkRed">*</span>
+                    </span>
+                    <Tooltip
+                      text="Bitte Basisdokument txt-Datei hochladen, z.B. basisdokument_version_1_az_... .txt"
+                      position="top"
+                      delayDuration={0}
+                      disabled={true}>
+                      <Info size={18} color={"slateGray"} />
+                    </Tooltip>
+                  </div>
+                  <div className="bg-offWhite rounded-md pl-3 pr-3 p-2 flex flex-row gap-2">
+                    <label
+                      role="button"
+                      className="flex items-center justify-center gap-2 cursor-pointer">
+                      <input
+                        ref={basisdokumentFileUploadRef}
+                        type="file"
+                        onChange={handleBasisdokumentFileUploadChange}
+                        accept=".txt"
+                      />
+                      {basisdokumentFilename}
+                      <button
+                        onClick={() => {
+                          if (!isMatchingFiles || !isValidBasisdokumentFile) {
+                            setErrorText("");
+                            setIsMatchingFiles(true);
+                            setIsValidBasisdokumentFile(true);
+                          }
+                          basisdokumentFileUploadRef?.current?.click();
+                        }}
+                        className="bg-darkGrey hover:bg-mediumGrey rounded-md pl-2 pr-2 p-1">
+                        <Upload size={24} color={"white"} />
+                      </button>
+                    </label>
+                    {basisdokumentFilename && (
+                      <button
+                        onClick={() => {
+                          setBasisdokumentFilename("");
+                          setBasisdokumentFile(undefined);
+                        }}
+                        className="bg-lightRed hover:bg-marker-red rounded-md p-1">
+                        <Trash size={24} color={"darkRed"} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+                {usage === UsageMode.Open && (
+                  <div className="flex flex-row items-center justify-center gap-3">
+                    <div className="flex flex-row gap-0.5">
+                      <span className="font-semibold">Bearbeitungsdatei:</span>
+                      <Tooltip
+                        text="Bitte Bearbeitungsdatei.txt hochladen, z.B. bearbeitungsdatei_version_1_az_... .txt"
+                        position="bottom"
+                        delayDuration={0}
+                        disabled={true}>
+                        <Info
+                          className="pointer-events-none"
+                          size={18}
+                          color={"slateGray"}
+                        />
+                      </Tooltip>
+                    </div>
+                    <div className="bg-offWhite rounded-md pl-3 pr-3 p-2 flex flex-row gap-2">
+                      <label className="flex items-center justify-center gap-2 cursor-pointer">
+                        <input
+                          ref={editFileUploadRef}
+                          type="file"
+                          onChange={handleEditFileUploadChange}
+                          accept=".txt"
+                        />
+                        {editFilename}
+                        <button
+                          onClick={() => {
+                            if (!isMatchingFiles || !isValidEditFile) {
+                              setErrorText("");
+                              setIsMatchingFiles(true);
+                              setIsValidEditFile(true);
+                            }
+                            editFileUploadRef?.current?.click();
+                          }}
+                          className="bg-darkGrey hover:bg-mediumGrey rounded-md pl-2 pr-2 p-1">
+                          <Upload size={24} color={"white"} />
+                        </button>
+                      </label>
+                      {editFilename && (
+                        <button
+                          onClick={() => {
+                            setEditFilename("");
+                            setEditFile(undefined);
+                          }}
+                          className="bg-lightRed hover:bg-marker-red rounded-md p-1">
+                          <Trash size={24} color={"darkRed"} />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+            {usage === UsageMode.Open && (
+              <div className="flex flex-row items-center gap-4">
+                <VersionPopup
+                  role={role!}
+                  isVisible={showVersionPopup}
+                  children={
+                    <>
+                      <Button
+                        bgColor="bg-offWhite hover:bg-lightGrey"
+                        textColor="text-black font-bold"
+                        onClick={() => {
+                          setShowVersionPopup(!showVersionPopup);
+                          setNewVersionMode(false);
+                        }}>
+                        {role === UserRole.Judge
+                          ? "Die hochgeladene Datei stammt von meinem Gericht (Weiterbearbeiten)"
+                          : "Die hochgeladene Datei stammt von meiner Partei (Weiterbearbeiten)"}
+                      </Button>
+                      <Button
+                        bgColor="bg-offWhite hover:bg-lightGrey"
+                        textColor="text-black font-bold"
+                        onClick={() => {
+                          setShowVersionPopup(!showVersionPopup);
+                          setNewVersionMode(true);
+                        }}>
+                        {role === UserRole.Judge
+                          ? "Die hochgeladene Datei stammt von der Klage- oder Beklagtenpartei (Neue Version)"
+                          : role === UserRole.Plaintiff
+                          ? "Die hochgeladene Datei stammt von der Beklagtenpartei oder dem Gericht (Neue Version)"
+                          : "Die hochgeladene Datei stammt von der Klagepartei oder dem Gericht (Neue Version)"}
+                      </Button>
+                    </>
+                  }
+                />
+
+                {newVersionMode && (
+                  <span className="text-base text-black">
+                    Mit dem Öffnen wird eine neue Version erstellt, da Sie das
+                    hochgeladene Dokument von einer anderen Partei erhalten und
+                    noch nicht editiert haben.{" "}
+                    <u
+                      className="hover:font-bold hover:cursor-pointer"
+                      onClick={() => {
+                        setShowVersionPopup(true);
+                      }}>
+                      Ändern.
+                    </u>
                   </span>
-                  <label
-                    role="button"
-                    className="flex items-center justify-center gap-2 cursor-pointer">
-                    <input
-                      ref={basisdokumentFileUploadRef}
-                      type="file"
-                      onChange={handleBasisdokumentFileUploadChange}
-                    />
-                    {basisdokumentFilename}
-                    <button
+                )}
+                {newVersionMode === false && (
+                  <span className="text-base text-black">
+                    Mit dem Öffnen wird keine neue Version erstellt, da das
+                    hochgeladene Dokument von Ihrer Partei stammt. Sie editieren
+                    weiterhin die aktuelle Version.{" "}
+                    <u
+                      className="hover:font-bold hover:cursor-pointer"
                       onClick={() => {
-                        basisdokumentFileUploadRef?.current?.click();
-                      }}
-                      className="bg-darkGrey hover:bg-mediumGrey rounded-md pl-2 pr-2 p-1">
-                      <Upload size={24} color={"white"} />
-                    </button>
-                  </label>
-                  {basisdokumentFilename && (
-                    <button
-                      onClick={() => {
-                        setBasisdokumentFilename("");
-                        setBasisdokumentFile(undefined);
-                      }}
-                      className="bg-lightRed hover:bg-marker-red rounded-md p-1">
-                      <Trash size={24} color={"darkRed"} />
-                    </button>
-                  )}
-                </div>
-                <div className="flex flex-row items-center justify-center gap-2">
-                  <span className="font-semibold">Bearbeitungsdatei:</span>
-                  <label className="flex items-center justify-center gap-2 cursor-pointer">
-                    <input
-                      ref={editFileUploadRef}
-                      type="file"
-                      onChange={handleEditFileUploadChange}
-                    />
-                    {editFilename}
-                    <button
-                      onClick={() => {
-                        editFileUploadRef?.current?.click();
-                      }}
-                      className="bg-darkGrey hover:bg-mediumGrey rounded-md pl-2 pr-2 p-1">
-                      <Upload size={24} color={"white"} />
-                    </button>
-                  </label>
-                  {editFilename && (
-                    <button
-                      onClick={() => {
-                        setEditFilename("");
-                        setEditFile(undefined);
-                      }}
-                      className="bg-lightRed hover:bg-marker-red rounded-md p-1">
-                      <Trash size={24} color={"darkRed"} />
-                    </button>
-                  )}
-                </div>
+                        setShowVersionPopup(true);
+                      }}>
+                      Ändern.
+                    </u>
+                  </span>
+                )}
               </div>
-            </div>
-            <div className="flex flex-row items-center gap-4">
-              <input
-                className="w-20 accent-darkGrey"
-                type="checkbox"
-                defaultChecked={newVersionMode}
-                onChange={() => setNewVersionMode(!newVersionMode)}
-              />
-              <div>
-                <p className="font-extrabold">
-                  Ich möchte eine neue Version auf Basis der hochgeladenen
-                  Version erstellen. <span className="text-darkRed">*</span>
-                </p>
-                <p className="font-light text-mediumGrey">
-                  Setzen Sie hier einen Haken, wenn Sie die Version des
-                  Basisdokuments, die Sie hochladen, zuvor von einer anderen
-                  Partei erhalten und noch nicht editiert haben.
-                </p>
-              </div>
-            </div>
+            )}
           </div>
         ) : null}
 
@@ -508,8 +816,13 @@ export const Auth: React.FC<AuthProps> = ({ setIsAuthenticated }) => {
         </div>
 
         <div className="flex flew-row items-end justify-between space-y-2">
-          <Button onClick={validateUserInput}>
-            Basisdokument {usage === UsageMode.Open ? "öffnen" : "erstellen"}
+          <Button onClick={validateUserInputAndOpen}>
+            Basisdokument{" "}
+            {usage === UsageMode.Open
+              ? "öffnen"
+              : usage === UsageMode.Create
+              ? "erstellen"
+              : "einsehen"}
           </Button>
           <p className="text-darkRed font-bold text-sm">* Pflichtfelder</p>
         </div>

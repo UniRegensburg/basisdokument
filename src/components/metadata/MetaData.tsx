@@ -1,14 +1,12 @@
 import cx from "classnames";
-import { CaretDown, CaretUp, DotsThree, Pencil, Plus } from "phosphor-react";
-import { useRef, useState } from "react";
+import { CaretDown, CaretRight, PencilSimple, Plus } from "phosphor-react";
+import { useState } from "react";
 import { toast } from "react-toastify";
 import { useCase, useHeaderContext, useUser } from "../../contexts";
-import { useOutsideClick } from "../../hooks/use-outside-click";
 import { getTheme } from "../../themes/getTheme";
 import { UserRole } from "../../types";
 import { Button } from "../Button";
-import { Action } from "../entry";
-import { ErrorPopup } from "../ErrorPopup";
+import { ErrorPopup } from "../popups/ErrorPopup";
 import { Tooltip } from "../Tooltip";
 import { MetaDataBody } from "./MetaDataBody";
 import { MetaDataForm } from "./MetaDataForm";
@@ -18,39 +16,30 @@ interface MetaDataProps {
 }
 
 export const MetaData: React.FC<MetaDataProps> = ({ owner }) => {
+  const [isOpen, setIsOpen] = useState<boolean>(true);
   const [isEditing, setIsEditing] = useState<boolean>(false);
-  const [isEditErrorVisible, setIsEditErrorVisible] = useState<boolean>(false);
-  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
-  const [isBodyOpen, setIsBodyOpen] = useState<boolean>(true);
+  const [isErrorVisible, setIsErrorVisible] = useState<boolean>(false);
+
   const { user } = useUser();
   const { metaData, setMetaData } = useCase();
-  const menuRef = useRef(null);
-  useOutsideClick(menuRef, () => setIsMenuOpen(false));
-
   const { selectedTheme } = useHeaderContext();
 
   const isPlaintiff = owner === UserRole.Plaintiff;
   const isJudge = user?.role === UserRole.Judge;
   const canEdit = isJudge || user?.role === owner;
-  const content = isPlaintiff ? metaData?.plaintiff : metaData?.defendant;
-
-  const toggleMenu = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIsMenuOpen(!isMenuOpen);
-  };
+  const rubrumContent = isPlaintiff ? metaData?.plaintiff : metaData?.defendant;
 
   const toggleMetaData = () => {
-    setIsBodyOpen(!isBodyOpen);
+    setIsOpen(!isOpen);
     setIsEditing(false);
   };
 
-  const editMetaData = () => {
+  const editRubrum = () => {
     setIsEditing(!isEditing);
-    setIsBodyOpen(true);
-    setIsMenuOpen(false);
+    setIsOpen(true);
   };
 
-  const updateMetaData = (plainText: string, rawHtml: string) => {
+  const updateRubrum = (plainText: string, rawHtml: string) => {
     if (plainText.length === 0) {
       toast("Bitte geben Sie einen Text ein.", { type: "error" });
       return;
@@ -70,74 +59,22 @@ export const MetaData: React.FC<MetaDataProps> = ({ owner }) => {
 
   return (
     <div className="flex flex-col space-y-2">
-      <div className="flex gap-2">
-        <Button
-          position="end"
-          bgColor={cx({
-            [`bg-${getTheme(selectedTheme)?.secondaryPlaintiff} hover-bg-${
-              getTheme(selectedTheme)?.primaryPlaintiff
-            }`]: isPlaintiff,
-            [`bg-${getTheme(selectedTheme)?.secondaryDefendant} hover-bg-${
-              getTheme(selectedTheme)?.primaryDefendant
-            }`]: !isPlaintiff,
-          })}
-          textColor={cx("font-bold text-sm uppercase tracking-wider", {
-            [`text-${getTheme(selectedTheme)?.primaryPlaintiff} hover-text-${
-              getTheme(selectedTheme)?.secondaryPlaintiff
-            }`]: isPlaintiff,
-            [`text-${getTheme(selectedTheme)?.primaryDefendant} hover-text-${
-              getTheme(selectedTheme)?.secondaryDefendant
-            }`]: !isPlaintiff,
-          })}
-          size="sm"
-          onClick={toggleMetaData}
-          icon={
-            isBodyOpen ? (
-              <CaretUp size={14} weight="bold" />
-            ) : (
-              <CaretDown size={14} weight="bold" />
-            )
-          }>
-          {owner}
-        </Button>
-        {canEdit && (
-          <div ref={menuRef} className="flex relative space-y-1 cursor-pointer">
-            <Tooltip text="Mehr Optionen">
-              <Action
-                className={cx("relative", {
-                  [`bg-${getTheme(selectedTheme)?.primaryPlaintiff} text-${
-                    getTheme(selectedTheme)?.secondaryPlaintiff
-                  }`]: isPlaintiff && isMenuOpen,
-                  [`bg-${getTheme(selectedTheme)?.primaryDefendant} text-${
-                    getTheme(selectedTheme)?.secondaryDefendant
-                  }`]: !isPlaintiff && isMenuOpen,
-                  [`hover-text-${getTheme(selectedTheme)?.secondaryPlaintiff}`]:
-                    isPlaintiff,
-                  [`hover-text-${getTheme(selectedTheme)?.secondaryDefendant}`]:
-                    !isPlaintiff,
-                })}
-                onClick={toggleMenu}
-                isPlaintiff={isPlaintiff}>
-                <DotsThree size={20} />
-              </Action>
-            </Tooltip>
-            {isMenuOpen ? (
-              <ul className="absolute right-0 top-full p-2 bg-white text-darkGrey rounded-xl min-w-[150px] shadow-lg z-50 text-sm">
-                <>
-                  <li
-                    tabIndex={0}
-                    onClick={editMetaData}
-                    className="flex items-center gap-2 p-2 rounded-lg hover:bg-offWhite focus:bg-offWhite focus:outline-none">
-                    <Pencil size={20} />
-                    Bearbeiten
-                  </li>
-                </>
-              </ul>
-            ) : null}
-          </div>
+      <div className="flex items-center justify-between">
+        <div
+          className="flex items-center gap-2 cursor-pointer font-bold text-darkGrey"
+          onClick={() => toggleMetaData()}>
+          {isOpen ? <CaretDown></CaretDown> : <CaretRight></CaretRight>}
+          <span>Rubrum</span>
+        </div>
+        {canEdit && rubrumContent && (
+          <Tooltip text="Rubrum bearbeiten">
+            <PencilSimple
+              className="cursor-pointer opacity-50"
+              onClick={() => editRubrum()}></PencilSimple>
+          </Tooltip>
         )}
       </div>
-      {isBodyOpen && (
+      {isOpen && (
         <div
           className={cx(
             "flex flex-col rounded-lg shadow text-sm overflow-hidden",
@@ -152,22 +89,22 @@ export const MetaData: React.FC<MetaDataProps> = ({ owner }) => {
           )}>
           {isEditing ? (
             <MetaDataForm
-              defaultContent={content}
+              defaultContent={rubrumContent}
               onAbort={(plainText, rawHtml) => {
-                setIsEditErrorVisible(true);
+                setIsErrorVisible(true);
               }}
               onSave={(plainText, rawHtml) => {
-                updateMetaData(plainText, rawHtml);
+                updateRubrum(plainText, rawHtml);
               }}
             />
           ) : (
             <MetaDataBody isPlaintiff={isPlaintiff}>
-              {content ? (
-                <p dangerouslySetInnerHTML={{ __html: content }} />
+              {rubrumContent ? (
+                <p dangerouslySetInnerHTML={{ __html: rubrumContent }} />
               ) : (
                 <div className="flex flex-col items-center justify-center py-4 max-w-[200px] m-auto text-center space-y-3">
                   <p className="text-sm">
-                    Bisher wurden noch keine Metadaten hinterlegt.
+                    Bisher wurde noch kein Rubrum hinterlegt.
                   </p>
                   {canEdit && (
                     <Button
@@ -205,7 +142,7 @@ export const MetaData: React.FC<MetaDataProps> = ({ owner }) => {
               )}
             </MetaDataBody>
           )}
-          <ErrorPopup isVisible={isEditErrorVisible}>
+          <ErrorPopup isVisible={isErrorVisible}>
             <div className="flex flex-col items-center justify-center space-y-8">
               <p className="text-center text-base">
                 Sind Sie sicher, dass Sie Ihre Änderungen verwerfen und somit{" "}
@@ -216,7 +153,7 @@ export const MetaData: React.FC<MetaDataProps> = ({ owner }) => {
                   bgColor="bg-lightGrey"
                   textColor="text-mediumGrey font-bold"
                   onClick={() => {
-                    setIsEditErrorVisible(false);
+                    setIsErrorVisible(false);
                   }}>
                   Abbrechen
                 </Button>
@@ -224,7 +161,7 @@ export const MetaData: React.FC<MetaDataProps> = ({ owner }) => {
                   bgColor="bg-lightRed"
                   textColor="text-darkRed font-bold"
                   onClick={() => {
-                    setIsEditErrorVisible(false);
+                    setIsErrorVisible(false);
                     setIsEditing(false);
                   }}>
                   Verwerfen

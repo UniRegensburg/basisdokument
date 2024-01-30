@@ -1,6 +1,6 @@
 import { Plus } from "phosphor-react";
 import { useState } from "react";
-import { useUser } from "../contexts";
+import { useEntries, useUser } from "../contexts";
 import { UserRole } from "../types";
 import { Button } from "./Button";
 import { NewEntry } from "./entry";
@@ -16,13 +16,21 @@ export const AddEntryButtons: React.FC<AddEntryButtonsProps> = ({
 }) => {
   const [isNewEntryVisible, setIsNewEntryVisible] = useState<boolean>(false);
   const [newEntryRole, setNewEntryRole] = useState<
-    "Klagepartei" | "Beklagtenpartei"
-  >("Klagepartei");
+    UserRole.Plaintiff | UserRole.Defendant
+  >(UserRole.Plaintiff);
   const { user } = useUser();
+  const { entryIdOpen, setEntryIdOpen, setIsEntryPopupOpen } = useEntries();
 
-  const handleClick = (roleForNewEntry: "Klagepartei" | "Beklagtenpartei") => {
+  const handleClick = (
+    roleForNewEntry: UserRole.Plaintiff | UserRole.Defendant
+  ) => {
+    if (entryIdOpen !== null) {
+      setIsEntryPopupOpen(true);
+      return;
+    }
     setNewEntryRole(roleForNewEntry);
     setIsNewEntryVisible(true);
+    setEntryIdOpen("newEntry");
   };
 
   return (

@@ -1,6 +1,6 @@
 import cx from "classnames";
 import { useCase, useHeaderContext, useUser } from "../../contexts";
-import { ISection, UserRole } from "../../types";
+import { ISection, Sorting, UserRole } from "../../types";
 import { SectionControls } from "./SectionControls";
 import { SectionDropdown } from "./SectionDropdown";
 import { SectionTitle } from "./SectionTitle";
@@ -19,20 +19,33 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
   const { user } = useUser();
   const { currentVersion } = useCase();
   const { showEntrySorting } = useHeaderContext();
+  const { selectedSorting } = useHeaderContext();
+
+  const sectionControlsHidden =
+    section.version !== currentVersion && selectedSorting === Sorting.Original;
 
   const isOld = section.version < currentVersion;
 
   return (
-    <div className={cx("grid grid-cols-2 gap-6 items-start pb-4 pt-12 w-full")}>
+    <div className="grid grid-cols-2 gap-6 items-start pb-4 pt-12 w-full">
       {/* Section Number */}
       <div
         className={cx("flex gap-6 items-center", {
           "w-full": user?.role !== UserRole.Defendant,
         })}>
         <div className="flex gap-4 items-center relative">
-          <SectionControls position={position} version={section.version} />
-          <div className="ml-1 bg-darkGrey w-10 h-10 rounded-lg rotate-45 flex items-center justify-center">
-            <span className="text-white font-bold -rotate-45">{sectionId}</span>
+          {!sectionControlsHidden && user?.role !== UserRole.Client && (
+            <SectionControls position={position} version={section.version} />
+          )}
+          <div
+            className={cx("", {
+              "pl-[46px]": sectionControlsHidden,
+            })}>
+            <div className="ml-1 bg-darkGrey w-10 h-10 rounded-lg rotate-45 flex items-center justify-center">
+              <span className="text-white font-bold -rotate-45">
+                {sectionId}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -41,22 +54,27 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
           id={section.id}
           role={UserRole.Plaintiff}
           title={section.titlePlaintiff}
-          version={section.version}
+          version={section.titlePlaintiffVersion}
         />
       </div>
       {/* Title with User Role */}
-      <div className="flex w-full gap-6 items-start">
+      <div className="flex w-[calc(100%_-_40px)] items-start justify-self-center">
         <SectionTitle
           id={section.id}
           role={UserRole.Defendant}
           title={section.titleDefendant}
-          version={section.version}
+          version={section.titleDefendantVersion}
         />
         {((!isOld && user?.role !== UserRole.Judge) ||
           (user?.role === UserRole.Judge && !isOld) ||
           (user?.role === UserRole.Judge && showEntrySorting)) && (
           <div className="mt-9">
-            <SectionDropdown sectionId={section.id} version={section.version} />
+            {user?.role !== UserRole.Client && (
+              <SectionDropdown
+                sectionId={section.id}
+                version={section.version}
+              />
+            )}
           </div>
         )}
       </div>

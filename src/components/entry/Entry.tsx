@@ -1,19 +1,28 @@
 import cx from "classnames";
 import { format } from "date-fns";
 import {
+  ArrowBendDownRight,
   ArrowBendLeftUp,
   BookmarkSimple,
   DotsThree,
   Notepad,
-  Pencil,
+  PencilSimple,
   Scales,
   Trash,
+  ArrowSquareOut,
 } from "phosphor-react";
-import React, { useRef, useState } from "react";
+import React, { SetStateAction, useRef, useState } from "react";
 import { EditText } from "react-edit-text";
 import { toast } from "react-toastify";
 import { Action, EntryBody, EntryForm, EntryHeader, NewEntry } from ".";
-import { useCase, useHeaderContext, useNotes, useHints } from "../../contexts";
+import {
+  useCase,
+  useHeaderContext,
+  useNotes,
+  useHints,
+  useUser,
+  useEntries,
+} from "../../contexts";
 import { useOutsideClick } from "../../hooks/use-outside-click";
 import {
   IEntry,
@@ -22,15 +31,25 @@ import {
   IBookmark,
   SidebarState,
   IndividualEntrySortingEntry,
+  ViewMode,
+  IEvidence,
 } from "../../types";
 import { Button } from "../Button";
-import { ErrorPopup } from "../ErrorPopup";
+import { ErrorPopup } from "../popups/ErrorPopup";
 import { Tooltip } from "../Tooltip";
 import { EntryList } from "./EntryList";
 import { useBookmarks } from "../../contexts";
 import { v4 as uuidv4 } from "uuid";
 import { useSidebar } from "../../contexts/SidebarContext";
 import { getTheme } from "../../themes/getTheme";
+import { getEntryCode } from "../../util/get-entry-code";
+import { useView } from "../../contexts/ViewContext";
+import { getBrowser } from "../../util/get-browser";
+import { getEntryById } from "../../contexts/CaseContext";
+import { getEvidenceIds, getEvidences } from "../../util/get-evidences";
+import { useEvidence } from "../../contexts/EvidenceContext";
+import { PopupContainer } from "../moveable-popups/PopupContainer";
+import { AssociationsPopup } from "../moveable-popups/AssociationsPopup";
 
 interface EntryProps {
   entry: IEntry;
@@ -39,6 +58,11 @@ interface EntryProps {
   isHidden?: boolean;
   isOld?: boolean;
   isHighlighted?: boolean;
+  shownInPopup?: boolean;
+  setAssociatedEntryInProgress?: (
+    entry: IEntry,
+    setIsNewEntryVisible: React.Dispatch<SetStateAction<boolean>>
+  ) => void;
 }
 
 export const Entry: React.FC<EntryProps> = ({
@@ -48,9 +72,12 @@ export const Entry: React.FC<EntryProps> = ({
   isHidden = false,
   isOld = false,
   isHighlighted = false,
+  shownInPopup = false,
+  setAssociatedEntryInProgress,
 }) => {
   // Threaded entries
   const {
+    entries,
     currentVersion,
     groupedEntries,
     setEntries,
@@ -61,7 +88,6 @@ export const Entry: React.FC<EntryProps> = ({
 
   const {
     versionHistory,
-    showColumnView,
     searchbarValue,
     hideEntriesHighlighter,
     getCurrentTool,
@@ -73,15 +99,30 @@ export const Entry: React.FC<EntryProps> = ({
 
   const { setShowNotePopup, setAssociatedEntryIdNote } = useNotes();
   const { setShowJudgeHintPopup, setAssociatedEntryIdHint } = useHints();
+  const { view } = useView();
+  const {
+    evidenceList,
+    updateEvidenceList,
+    removeEvidencesWithoutReferences,
+    setPlaintiffFileVolume,
+    setDefendantFileVolume,
+  } = useEvidence();
+  const { setEntryIdOpen } = useEntries();
 
   const versionTimestamp = versionHistory[entry.version - 1].timestamp;
-  const thread = groupedEntries[entry.sectionId][entry.id];
+
+  var thread: IEntry[] = [];
+  if (view !== ViewMode.SideBySide)
+    thread = groupedEntries[entry.sectionId][entry.id];
 
   // State of current entry
   const [isBodyOpen, setIsBodyOpen] = useState<boolean>(true);
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+  const [isAssociationsPopupOpen, setIsAssociationsPopupOpen] =
+    useState<boolean>(false);
+  const [associatedEntry, setAssociatedEntry] = useState<IEntry>();
   const [isNewEntryVisible, setIsNewEntryVisible] = useState<boolean>(false);
   const [isEditErrorVisible, setIsEditErrorVisible] = useState<boolean>(false);
   const [isDeleteErrorVisible, setIsDeleteErrorVisible] =
@@ -93,12 +134,14 @@ export const Entry: React.FC<EntryProps> = ({
     useState<boolean>(false);
   const { bookmarks, setBookmarks, deleteBookmarkByReference } = useBookmarks();
   const { setActiveSidebar } = useSidebar();
+  const { user } = useUser();
+  const { entryIdOpen, setIsEntryPopupOpen } = useEntries();
 
   const isJudge = viewedBy === UserRole.Judge;
   const isPlaintiff = entry.role === UserRole.Plaintiff;
   const isOwnEntry =
-    (viewedBy === UserRole.Plaintiff && entry.role === "Klagepartei") ||
-    (viewedBy === UserRole.Defendant && entry.role === "Beklagtenpartei");
+    (viewedBy === UserRole.Plaintiff && entry.role === UserRole.Plaintiff) ||
+    (viewedBy === UserRole.Defendant && entry.role === UserRole.Defendant);
   const canAddEntry = isJudge || !isOwnEntry;
   const menuRef = useRef(null);
 
@@ -116,8 +159,22 @@ export const Entry: React.FC<EntryProps> = ({
     setIsBodyOpen(!isBodyOpen);
   };
 
+  const createAssociatedEntryButton = useRef<HTMLAnchorElement | null>(null);
+
   const showNewEntry = () => {
-    setIsNewEntryVisible(true);
+    if (entryIdOpen !== null) {
+      setIsEntryPopupOpen(true);
+      return;
+    }
+    // TODO: check other browsers
+    if (!getBrowser().includes("Firefox"))
+      setTimeout(() => createAssociatedEntryButton.current?.click(), 1);
+    if (view === ViewMode.SideBySide) {
+      setAssociatedEntryInProgress!(entry, setIsNewEntryVisible);
+    } else {
+      setIsNewEntryVisible(true);
+    }
+    setEntryIdOpen("newEntry");
   };
 
   const bookmarkEntry = (e: React.MouseEvent) => {
@@ -168,7 +225,15 @@ export const Entry: React.FC<EntryProps> = ({
   };
 
   const editEntry = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (entryIdOpen !== null) {
+      setIsEntryPopupOpen(true);
+      setIsMenuOpen(false);
+      return;
+    }
     setIsEditing(!isEditing);
+    setIsMenuOpen(false);
+    setEntryIdOpen(entry.id);
     setIsBodyOpen(true);
   };
 
@@ -177,31 +242,32 @@ export const Entry: React.FC<EntryProps> = ({
     entryCode: string,
     sectionId: string
   ) => {
+    setEntryIdOpen(null);
     deleteBookmarkByReference(entryId);
-    setEntries((prevEntries) =>
-      prevEntries
-        .filter((entry) => entry.id !== entryId)
-        .map((entry, index) => {
-          // Only update entries that were added in the current version and
-          // are contained withing the specified section
-          const isCurrentVersion = entry.version === currentVersion;
-          const isInSection = entry.sectionId === sectionId;
+    let prevEntries = entries
+      .filter((entry) => entry.id !== entryId)
+      .map((entry, index) => {
+        // Only update entries that were added in the current version and
+        // are contained withing the specified section
+        const isCurrentVersion = entry.version === currentVersion;
+        const isInSection = entry.sectionId === sectionId;
 
-          if (isCurrentVersion && isInSection) {
-            const newEntryCode = entry.entryCode.split("-");
-            if (
-              Number(newEntryCode[newEntryCode.length - 1]) >
-              Number(entryCode.split("-")[newEntryCode.length - 1])
-            ) {
-              newEntryCode[newEntryCode.length - 1] = String(
-                Number(newEntryCode[newEntryCode.length - 1]) - 1
-              );
-              entry.entryCode = newEntryCode.join("-");
-            }
+        if (isCurrentVersion && isInSection) {
+          const newEntryCode = entry.entryCode.split("-");
+          if (
+            Number(newEntryCode[newEntryCode.length - 1]) >
+            Number(entryCode.split("-")[newEntryCode.length - 1])
+          ) {
+            newEntryCode[newEntryCode.length - 1] = String(
+              Number(newEntryCode[newEntryCode.length - 1]) - 1
+            );
+            entry.entryCode = newEntryCode.join("-");
           }
-          return entry;
-        })
-    );
+        }
+        return entry;
+      });
+    removeEvidencesWithoutReferences(prevEntries);
+    setEntries(prevEntries);
 
     setIndividualEntrySorting((prevEntrySorting) => {
       let newEntrySorting: { [key: string]: IndividualEntrySortingEntry[] } = {
@@ -231,13 +297,20 @@ export const Entry: React.FC<EntryProps> = ({
     });
   };
 
-  const updateEntry = (plainText: string, rawHtml: string) => {
+  const updateEntry = (
+    plainText: string,
+    rawHtml: string,
+    evidences: IEvidence[],
+    caveatOfProof: boolean
+  ) => {
     if (plainText.length === 0) {
       toast("Bitte geben Sie einen Text ein.", { type: "error" });
       return;
     }
-
+    updateEvidenceList(evidences, entries);
+    const newEvidenceIds = getEvidenceIds(evidences);
     setIsEditing(false);
+    setEntryIdOpen(null);
     setEntries((oldEntries) => {
       const newEntries = [...oldEntries];
       const entryIndex = newEntries.findIndex(
@@ -245,6 +318,9 @@ export const Entry: React.FC<EntryProps> = ({
       );
       newEntries[entryIndex].text = rawHtml;
       newEntries[entryIndex].author = authorName || entry.author;
+      newEntries[entryIndex].evidenceIds = newEvidenceIds;
+      newEntries[entryIndex].caveatOfProof = caveatOfProof;
+      removeEvidencesWithoutReferences(newEntries);
       return newEntries;
     });
 
@@ -267,220 +343,339 @@ export const Entry: React.FC<EntryProps> = ({
               hideEntriesHighlighter &&
               getCurrentTool.id === Tool.Cursor),
           "pointer-events-none": isHidden,
+          "flex-1": shownInPopup,
         })}>
         <div
           className={cx("flex flex-col", {
-            "items-end": !isPlaintiff,
+            "items-end": !isPlaintiff && !shownInPopup,
           })}>
           <div
             className={cx("transition-all", {
               "w-[calc(50%_-_12px)]":
-                !isExpanded && showColumnView && !showEntrySorting,
-              "w-full": isExpanded || !showColumnView || showEntrySorting,
+                !isExpanded && view === ViewMode.Columns && !showEntrySorting,
+              "w-full":
+                isExpanded || view === ViewMode.Rows || showEntrySorting,
+              "mt-6":
+                (isExpanded || view === ViewMode.Rows || showEntrySorting) &&
+                entry.associatedEntry &&
+                entry.role === UserRole.Plaintiff &&
+                !shownInPopup,
+              "w-[calc(100%_-_12px)]":
+                !isExpanded &&
+                (view === ViewMode.SideBySide || shownInPopup) &&
+                !showEntrySorting,
             })}>
             {/* Entry */}
+            {/* visualize association */}
+            {entry.associatedEntry && !shownInPopup ? (
+              <a
+                href={`#${getEntryCode(entries, entry.associatedEntry)}`}
+                className={cx(
+                  "flex flex-row gap-1 self-center text-xs font-normal rounded-t-md p-1 w-fit h-50 -mt-50 hover:text-white",
+                  {
+                    [`mr-0 ml-auto bg-${
+                      getTheme(selectedTheme)?.primaryPlaintiff
+                    } text-${getTheme(selectedTheme)?.secondaryPlaintiff}`]:
+                      entry.entryCode?.charAt(0) === "B",
+                    [`bg-${getTheme(selectedTheme)?.primaryDefendant} text-${
+                      getTheme(selectedTheme)?.secondaryDefendant
+                    }`]: entry.entryCode?.charAt(0) === "K",
+                  }
+                )}
+                onClick={(e) => e.stopPropagation()}>
+                <ArrowBendDownRight size={14}></ArrowBendDownRight>
+                {`Bezieht sich auf ${getEntryCode(
+                  entries,
+                  entry.associatedEntry
+                )}`}
+                <div
+                  className={cx("h-[16px] w-[0.5px]", {
+                    [`bg-${getTheme(selectedTheme)?.secondaryPlaintiff}`]:
+                      entry.entryCode?.charAt(0) === "B",
+                    [`bg-${getTheme(selectedTheme)?.secondaryDefendant}`]:
+                      entry.entryCode?.charAt(0) === "K",
+                  })}></div>
+                <Tooltip text="Bezugnahme gesondert anzeigen">
+                  <ArrowSquareOut
+                    size={14}
+                    onClick={() => {
+                      setAssociatedEntry(
+                        getEntryById(entries, entry.associatedEntry!)!
+                      );
+                      setIsAssociationsPopupOpen(true);
+                    }}></ArrowSquareOut>
+                </Tooltip>
+              </a>
+            ) : !shownInPopup ? (
+              // spacing
+              <div className="h-6"></div>
+            ) : null}
+
             <div
-              className={cx("shadow rounded-lg bg-white relative", {
+              className={cx("shadow rounded-lg", {
                 "outline outline-2 outline-offset-4 outline-blue-600":
                   selectedVersion + 1 === entry.version &&
                   highlightElementsWithSpecificVersion,
                 isHighlighted,
               })}>
-              <EntryHeader
-                isPlaintiff={isPlaintiff}
-                isBodyOpen={isBodyOpen}
-                toggleBody={toggleBody}>
-                <div className="overflow-auto max-w-[350px] whitespace-nowrap">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={cx(
-                        "rounded-full px-3 py-1 text-xs font-semibold",
-                        {
-                          [`bg-${
-                            getTheme(selectedTheme)?.primaryPlaintiff
-                          } text-${
-                            getTheme(selectedTheme)?.secondaryPlaintiff
-                          }`]: isPlaintiff,
-                          [`bg-${
-                            getTheme(selectedTheme)?.primaryDefendant
-                          } text-${
-                            getTheme(selectedTheme)?.secondaryDefendant
-                          }`]: !isPlaintiff,
-                        }
-                      )}>
-                      {entry.entryCode}
-                    </span>
-                    {isEditing ? (
-                      <EditText
-                        inputClassName={cx(
-                          "font-bold h-[28px] p-0 my-0 focus:outline-none bg-transparent",
-                          {
-                            [`border-${
-                              getTheme(selectedTheme)?.primaryPlaintiff
-                            }`]: isPlaintiff,
-                            [`border-${
-                              getTheme(selectedTheme)?.primaryDefendant
-                            }`]: !isPlaintiff,
-                          }
-                        )}
+              <div
+                className={cx("", {
+                  [`pr-1 rounded-l-xl rounded-br-lg bg-${
+                    getTheme(selectedTheme)?.primaryPlaintiff
+                  }`]:
+                    entry.entryCode?.charAt(0) === "B" &&
+                    entry.associatedEntry &&
+                    !shownInPopup,
+                  [`pl-1 rounded-r-xl rounded-bl-lg bg-${
+                    getTheme(selectedTheme)?.primaryDefendant
+                  }`]:
+                    entry.entryCode?.charAt(0) === "K" &&
+                    entry.associatedEntry &&
+                    !shownInPopup,
+                })}>
+                <EntryHeader
+                  isPlaintiff={isPlaintiff}
+                  isBodyOpen={isBodyOpen}
+                  toggleBody={toggleBody}>
+                  <div className="overflow-auto max-w-[350px] whitespace-nowrap">
+                    <div className="flex items-center gap-2">
+                      <span
                         className={cx(
-                          "font-bold p-0 my-0 flex items-center mr-2",
+                          "rounded-full px-3 py-1 text-xs font-semibold",
                           {
-                            [`text-${
-                              getTheme(selectedTheme)?.primaryPlaintiff
-                            }`]: isPlaintiff,
-                            [`text-${
-                              getTheme(selectedTheme)?.primaryDefendant
-                            }`]: !isPlaintiff,
-                          }
-                        )}
-                        value={authorName}
-                        onChange={(e) => {
-                          setAuthorName(e.target.value);
-                        }}
-                        showEditButton
-                        editButtonContent={
-                          <Tooltip asChild text="Name bearbeiten">
-                            <Pencil />
-                          </Tooltip>
-                        }
-                        editButtonProps={{
-                          className: cx("bg-transparent flex items-center"),
-                        }}
-                      />
-                    ) : (
-                      <span className="font-bold">{entry.author}</span>
-                    )}
-                    <span>
-                      {entry.version < currentVersion &&
-                        format(new Date(versionTimestamp), "dd.MM.yyyy")}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <Tooltip
-                    text={
-                      isBookmarked ? (
-                        <span>
-                          Lesezeichen <b>{getBookmarkTitle()}</b> entfernen
-                        </span>
-                      ) : (
-                        "Zu Lesezeichen hinzufügen"
-                      )
-                    }>
-                    <Action onClick={bookmarkEntry} isPlaintiff={isPlaintiff}>
-                      <BookmarkSimple
-                        size={20}
-                        weight={isBookmarked ? "fill" : "regular"}
-                      />
-                    </Action>
-                  </Tooltip>
-                  <Tooltip text="Notiz hinzufügen">
-                    <Action onClick={addNote} isPlaintiff={isPlaintiff}>
-                      <Notepad size={20} />
-                    </Action>
-                  </Tooltip>
-                  {(isJudge || (entry.role === viewedBy && !isOld)) && (
-                    <div ref={menuRef} className="flex relative space-y-2">
-                      <Tooltip text="Mehr Optionen">
-                        <Action
-                          className={cx({
                             [`bg-${
                               getTheme(selectedTheme)?.primaryPlaintiff
                             } text-${
                               getTheme(selectedTheme)?.secondaryPlaintiff
-                            }`]: isPlaintiff && isMenuOpen,
+                            }`]: isPlaintiff,
                             [`bg-${
                               getTheme(selectedTheme)?.primaryDefendant
                             } text-${
                               getTheme(selectedTheme)?.secondaryDefendant
-                            }`]: !isPlaintiff && isMenuOpen,
-                          })}
-                          onClick={toggleMenu}
+                            }`]: !isPlaintiff,
+                          }
+                        )}>
+                        {entry.entryCode}
+                      </span>
+                      {isEditing ? (
+                        <EditText
+                          inputClassName={cx(
+                            "font-bold h-[28px] p-0 my-0 focus:outline-none bg-transparent",
+                            {
+                              [`border-${
+                                getTheme(selectedTheme)?.primaryPlaintiff
+                              }`]: isPlaintiff,
+                              [`border-${
+                                getTheme(selectedTheme)?.primaryDefendant
+                              }`]: !isPlaintiff,
+                            }
+                          )}
+                          className={cx(
+                            "font-bold p-0 my-0 flex items-center mr-2",
+                            {
+                              [`text-${
+                                getTheme(selectedTheme)?.primaryPlaintiff
+                              }`]: isPlaintiff,
+                              [`text-${
+                                getTheme(selectedTheme)?.primaryDefendant
+                              }`]: !isPlaintiff,
+                            }
+                          )}
+                          value={authorName}
+                          onChange={(e) => {
+                            setAuthorName(e.target.value);
+                          }}
+                          showEditButton
+                          editButtonContent={
+                            <Tooltip asChild text="Name bearbeiten">
+                              <PencilSimple />
+                            </Tooltip>
+                          }
+                          editButtonProps={{
+                            className: cx("bg-transparent flex items-center"),
+                          }}
+                        />
+                      ) : (
+                        <span className="font-bold">{entry.author}</span>
+                      )}
+                      <span>
+                        {entry.version < currentVersion &&
+                          format(new Date(versionTimestamp), "dd.MM.yyyy")}
+                      </span>
+                    </div>
+                  </div>
+                  {!shownInPopup && user?.role !== UserRole.Client && (
+                    <div className="flex gap-2">
+                      <Tooltip
+                        text={
+                          isBookmarked ? (
+                            <span>
+                              Lesezeichen <b>{getBookmarkTitle()}</b> entfernen
+                            </span>
+                          ) : (
+                            "Zu Lesezeichen hinzufügen"
+                          )
+                        }>
+                        <Action
+                          onClick={bookmarkEntry}
                           isPlaintiff={isPlaintiff}>
-                          <DotsThree size={20} />
+                          <BookmarkSimple
+                            size={20}
+                            weight={isBookmarked ? "fill" : "regular"}
+                          />
                         </Action>
                       </Tooltip>
-                      {isMenuOpen ? (
-                        <ul className="absolute right-0 top-full p-2 bg-white text-darkGrey rounded-xl min-w-[250px] shadow-lg z-50">
-                          {isJudge && (
-                            <li
-                              tabIndex={0}
-                              onClick={addHint}
-                              className="flex items-center gap-2 p-2 rounded-lg hover:bg-offWhite focus:bg-offWhite focus:outline-none">
-                              <Scales size={20} />
-                              Hinweis hinzufügen
-                            </li>
-                          )}
-                          {!isOld && (
-                            <>
-                              <li
-                                tabIndex={0}
-                                onClick={editEntry}
-                                className="flex items-center gap-2 p-2 rounded-lg hover:bg-offWhite focus:bg-offWhite focus:outline-none">
-                                <Pencil size={20} />
-                                Bearbeiten
-                              </li>
-                              <li
-                                tabIndex={0}
-                                onClick={() => setIsDeleteErrorVisible(true)}
-                                className="flex items-center gap-2 p-2 rounded-lg text-vibrantRed hover:bg-offWhite focus:bg-offWhite focus:outline-none">
-                                <Trash size={20} />
-                                Löschen
-                              </li>
-                            </>
-                          )}
-                        </ul>
-                      ) : null}
+                      <Tooltip text="Notiz hinzufügen">
+                        <Action onClick={addNote} isPlaintiff={isPlaintiff}>
+                          <Notepad size={20} />
+                        </Action>
+                      </Tooltip>
+                      {(isJudge || (entry.role === viewedBy && !isOld)) && (
+                        <div ref={menuRef} className="flex relative space-y-2">
+                          <Tooltip text="Mehr Optionen">
+                            <Action
+                              className={cx({
+                                [`bg-${
+                                  getTheme(selectedTheme)?.primaryPlaintiff
+                                } text-${
+                                  getTheme(selectedTheme)?.secondaryPlaintiff
+                                }`]: isPlaintiff && isMenuOpen,
+                                [`bg-${
+                                  getTheme(selectedTheme)?.primaryDefendant
+                                } text-${
+                                  getTheme(selectedTheme)?.secondaryDefendant
+                                }`]: !isPlaintiff && isMenuOpen,
+                              })}
+                              onClick={toggleMenu}
+                              isPlaintiff={isPlaintiff}>
+                              <DotsThree size={20} />
+                            </Action>
+                          </Tooltip>
+                          {isMenuOpen ? (
+                            <ul className="absolute right-0 top-full p-2 bg-white text-darkGrey rounded-xl min-w-[250px] shadow-lg z-50">
+                              {isJudge && (
+                                <li
+                                  tabIndex={0}
+                                  onClick={addHint}
+                                  className="flex items-center gap-2 p-2 rounded-lg hover:bg-offWhite focus:bg-offWhite focus:outline-none">
+                                  <Scales size={20} />
+                                  Hinweis hinzufügen
+                                </li>
+                              )}
+                              {!isOld && !isEditing && (
+                                <>
+                                  <li
+                                    tabIndex={0}
+                                    onClick={editEntry}
+                                    className="flex items-center gap-2 p-2 rounded-lg hover:bg-offWhite focus:bg-offWhite focus:outline-none">
+                                    <PencilSimple size={20} />
+                                    Bearbeiten
+                                  </li>
+                                  <li
+                                    tabIndex={0}
+                                    onClick={() =>
+                                      setIsDeleteErrorVisible(true)
+                                    }
+                                    className="flex items-center gap-2 p-2 rounded-lg text-vibrantRed hover:bg-offWhite focus:bg-offWhite focus:outline-none">
+                                    <Trash size={20} />
+                                    Löschen
+                                  </li>
+                                </>
+                              )}
+                              {!isOld && isEditing && (
+                                <>
+                                  <li
+                                    tabIndex={0}
+                                    onClick={() =>
+                                      setIsDeleteErrorVisible(true)
+                                    }
+                                    className="flex items-center gap-2 p-2 rounded-lg text-vibrantRed hover:bg-offWhite focus:bg-offWhite focus:outline-none">
+                                    <Trash size={20} />
+                                    Löschen
+                                  </li>
+                                </>
+                              )}
+                            </ul>
+                          ) : null}
+                        </div>
+                      )}
                     </div>
                   )}
-                </div>
-              </EntryHeader>
-              {/* Body */}
-              {isBodyOpen && !isEditing && (
-                <EntryBody
-                  isPlaintiff={isPlaintiff}
-                  setLowerOpcacityForSearch={setLowerOpcacityForSearch}
-                  setLowerOpcacityForHighlighters={
-                    setLowerOpcacityForHighlighters
-                  }
-                  lowerOpcacityForHighlighters={lowerOpcacityForHighlighters}
-                  entryId={entry.id}>
-                  {entry.text}
-                </EntryBody>
-              )}
-              {isBodyOpen && isEditing && (
-                <EntryForm
-                  defaultContent={entry.text}
-                  isPlaintiff={isPlaintiff}
-                  isExpanded={isExpanded}
-                  setIsExpanded={() => setIsExpanded(!isExpanded)}
-                  onAbort={() => {
-                    setIsEditErrorVisible(true);
-                  }}
-                  onSave={(plainText: string, rawHtml: string) => {
-                    updateEntry(plainText, rawHtml);
-                    setIsExpanded(false);
-                  }}
-                />
-              )}
+                </EntryHeader>
+                {/* Body */}
+                {isBodyOpen && !isEditing && (
+                  <EntryBody
+                    isPlaintiff={isPlaintiff}
+                    setLowerOpcacityForSearch={setLowerOpcacityForSearch}
+                    setLowerOpcacityForHighlighters={
+                      setLowerOpcacityForHighlighters
+                    }
+                    lowerOpcacityForHighlighters={lowerOpcacityForHighlighters}
+                    entryId={entry.id}
+                    caveatOfProof={entry.caveatOfProof}
+                    showInPopup={shownInPopup}
+                    evidences={getEvidences(evidenceList, entry.evidenceIds)}>
+                    {entry.text}
+                  </EntryBody>
+                )}
+                {isBodyOpen && isEditing && (
+                  <EntryForm
+                    entryId={entry.id}
+                    caveatOfProof={entry.caveatOfProof}
+                    defaultContent={entry.text}
+                    isPlaintiff={isPlaintiff}
+                    isExpanded={isExpanded}
+                    setIsExpanded={() => setIsExpanded(!isExpanded)}
+                    onAbort={() => {
+                      setIsEditErrorVisible(true);
+                      setEntryIdOpen(null);
+                    }}
+                    onSave={(
+                      plainText: string,
+                      rawHtml: string,
+                      evidences: IEvidence[],
+                      caveatOfProof: boolean,
+                      plaintiffVolume: number,
+                      defendantFileVolume: number
+                    ) => {
+                      updateEntry(plainText, rawHtml, evidences, caveatOfProof);
+                      setPlaintiffFileVolume(plaintiffVolume);
+                      setDefendantFileVolume(defendantFileVolume);
+                      setIsExpanded(false);
+                    }}
+                    evidences={getEvidences(evidenceList, entry.evidenceIds)}
+                  />
+                )}
+              </div>
             </div>
             {/* Button to add response */}
-            {canAddEntry && !isNewEntryVisible && !showEntrySorting && (
-              <Button
-                size="sm"
-                alternativePadding="mt-2"
-                bgColor="bg-lightGrey hover:bg-mediumGrey"
-                textColor="text-darkGrey hover:text-offWhite"
-                onClick={showNewEntry}
-                icon={<ArrowBendLeftUp weight="bold" size={18} />}>
-                Auf diesen Beitrag Bezug nehmen
-              </Button>
-            )}
+            {canAddEntry &&
+            !isNewEntryVisible &&
+            !showEntrySorting &&
+            !shownInPopup &&
+            user?.role !== UserRole.Client ? (
+              <a
+                className="inline-block"
+                href={`#${entry.sectionId}-scroll`}
+                ref={createAssociatedEntryButton}>
+                <Button
+                  size="sm"
+                  alternativePadding="mt-2"
+                  bgColor="bg-lightGrey hover:bg-mediumGrey"
+                  textColor="text-darkGrey hover:text-offWhite"
+                  onClick={showNewEntry}
+                  icon={<ArrowBendLeftUp weight="bold" size={18} />}>
+                  Auf diesen Beitrag Bezug nehmen
+                </Button>
+              </a>
+            ) : !shownInPopup ? (
+              // spacing
+              <div className="h-9"></div>
+            ) : null}
           </div>
           {isNewEntryVisible && (
-            <div className={cx("flex flex-col w-full")}>
-              {!showColumnView && (
+            <div className={cx(`flex flex-col w-full`)}>
+              {view !== ViewMode.Columns && (
                 <button className="ml-5 w-5 border-l-2 border-lightGrey"></button>
               )}
               <NewEntry
@@ -498,15 +693,15 @@ export const Entry: React.FC<EntryProps> = ({
           )}
         </div>
       </div>
-      {thread?.length > 0 && !showEntrySorting && (
+      {thread?.length > 0 && !showEntrySorting && !shownInPopup && (
         <div
           className={cx({
-            flex: !showColumnView,
+            flex: view !== ViewMode.Columns,
           })}>
-          {!showColumnView && (
-            <button className="ml-5 w-5 border-l-2 border-lightGrey" />
+          {view !== ViewMode.Columns && (
+            <button className="mt-6 ml-5 w-5 border-l-2 border-lightGrey" />
           )}
-          <EntryList entries={thread} sectionId={entry.sectionId} />
+          <EntryList entriesList={thread} sectionId={thread[0].sectionId} />
         </div>
       )}
       <ErrorPopup isVisible={isEditErrorVisible}>
@@ -564,6 +759,23 @@ export const Entry: React.FC<EntryProps> = ({
           </div>
         </div>
       </ErrorPopup>
+      {isAssociationsPopupOpen && (
+        <PopupContainer
+          title={`Beitrag ${entry.entryCode} bezieht sich auf Beitrag ${
+            associatedEntry!.entryCode
+          }`}
+          isVisible={isAssociationsPopupOpen}
+          setIsVisible={setIsAssociationsPopupOpen}
+          width={60}
+          height={75}
+          spacing={1}
+          children={
+            <AssociationsPopup
+              setIsAssociationsPopupOpen={setIsAssociationsPopupOpen}
+              entry={entry}
+              associatedEntry={associatedEntry!}></AssociationsPopup>
+          }></PopupContainer>
+      )}
     </>
   );
 };
