@@ -65,14 +65,16 @@ export const EvidenceProvider: React.FC<EvidenceProviderProps> = ({
     // if yes: overwrite with newer evidence version
     // if not: push to to-update list
     for (let i = 0; i < evidences.length; i++) {
-      for (let j = 0; j < updatedEvidenceList.length; j++) {
-        if (evidences[i].id === updatedEvidenceList[j].id) {
-          updatedEvidenceList[j] = evidences[i];
-        } else {
-          updatedEvidenceList.push(evidences[i]);
-        }
+      let checkForUpdate = updatedEvidenceList.findIndex(
+        (ev) => ev.id === evidences[i].id
+      );
+      if (checkForUpdate !== -1) {
+        updatedEvidenceList[checkForUpdate] = evidences[i];
+      } else {
+        updatedEvidenceList.push(evidences[i]);
       }
     }
+
     /* // also check if some of the evidences have to be deleted completely
     // duplicate code (see removeEvidencesWithoutReferences) because of asynchronous setState -> not finished when
     for (let k = 0; k < updatedEvidenceList.length; k++) {
