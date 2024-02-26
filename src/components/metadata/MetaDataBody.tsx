@@ -14,8 +14,7 @@ export const MetaDataBody: React.FC<MetaDataBodyProps> = ({
       className={cx("p-6", {
         "border-darkPurple/25": isPlaintiff,
         "border-darkPetrol/25": !isPlaintiff,
-      })}
-    >
+      })}>
       {children}
     </div>
   );
