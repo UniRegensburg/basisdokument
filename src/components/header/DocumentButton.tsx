@@ -52,6 +52,8 @@ export const DocumentButton = () => {
     evidenceIdsDefendant,
     plaintiffFileVolume,
     defendantFileVolume,
+    plaintiffAttachments,
+    defendantAttachments,
   } = useEvidence();
   const { versionHistory, colorSelection, selectedTheme, setSelectedTheme } =
     useHeaderContext();
@@ -72,6 +74,8 @@ export const DocumentButton = () => {
         currentVersion,
         versionHistory,
         metaData,
+        plaintiffAttachments,
+        defendantAttachments,
         entries,
         sectionList,
         evidenceList,

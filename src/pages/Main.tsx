@@ -51,6 +51,8 @@ export const Main: React.FC = () => {
     evidenceIdsDefendant,
     plaintiffFileVolume,
     defendantFileVolume,
+    plaintiffAttachments,
+    defendantAttachments,
   } = useEvidence();
   const { versionHistory, colorSelection } = useHeaderContext();
   const { bookmarks } = useBookmarks();
@@ -94,6 +96,8 @@ export const Main: React.FC = () => {
               currentVersion={currentVersion}
               versionHistory={versionHistory}
               metaData={metaData}
+              metaDataAttachmentPlaintiff={plaintiffAttachments}
+              metaDataAttachmentDefendant={defendantAttachments}
               entries={entries}
               sectionList={sectionList}
               evidenceList={evidenceList}

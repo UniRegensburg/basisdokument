@@ -24,8 +24,9 @@ import { ImageViewerPopup } from "../entry/ImageViewerPopup";
 
 interface EvidencesPopupProps {
   entryId?: string;
-  caveatOfProof: boolean;
-  setCaveatOfProof: React.Dispatch<React.SetStateAction<boolean>>;
+  caveatOfProof?: boolean;
+  setCaveatOfProof?: React.Dispatch<React.SetStateAction<boolean>>;
+  isAttachmentInRubrum?: boolean;
   isVisible: boolean;
   setIsVisible: React.Dispatch<React.SetStateAction<boolean>>;
   isPlaintiff: boolean;
@@ -64,6 +65,7 @@ export const EvidencesPopup: React.FC<EvidencesPopupProps> = ({
   setDefendantFileVolumeToSave,
   caveatOfProof,
   setCaveatOfProof,
+  isAttachmentInRubrum,
 }) => {
   const { entries, currentVersion } = useCase();
   const { selectedTheme } = useHeaderContext();
@@ -84,8 +86,9 @@ export const EvidencesPopup: React.FC<EvidencesPopupProps> = ({
     useState<(string | undefined)[]>(evidenceIdsDefendant);
 
   const [currentInput, setCurrentInput] = useState<string>("");
-  const [currentCaveatOfProof, setCurrentCaveatOfProof] =
-    useState<boolean>(caveatOfProof);
+  const [currentCaveatOfProof, setCurrentCaveatOfProof] = useState<boolean>(
+    caveatOfProof!
+  );
   const [suggestionsActive, setSuggestionsActive] = useState<boolean>(false);
   const [hasAttachment, setHasAttachment] = useState<boolean>(false);
   const [hasImageFile, setHasImageFile] = useState<boolean>(false);
@@ -429,16 +432,15 @@ export const EvidencesPopup: React.FC<EvidencesPopupProps> = ({
 
   const caveatOfProofClicked = (e: any) => {
     setCurrentCaveatOfProof(e.target.checked);
-    setCaveatOfProof(e.target.checked);
+    setCaveatOfProof!(e.target.checked);
   };
 
   return (
     <>
       <span className="text-sm">
-        Fügen Sie Beweise zu diesem Beitrag hinzu. Sie können dabei auch auf
-        Anlagen verweisen, welche Sie später mit versenden. Beweise, die hier
-        hinzugefügt wurden, können auch in anderen Beiträgen referenziert
-        werden.
+        {isAttachmentInRubrum
+          ? "Fügen Sie Anlagen zu diesem Rubrum hinzu. Sie können dabei auch auf Anlagen verweisen, welche Sie später mit versenden."
+          : "Fügen Sie Beweise zu diesem Beitrag hinzu. Sie können dabei auch auf Anlagen verweisen, welche Sie später mit versenden. Beweise, die hier hinzugefügt wurden, können auch in anderen Beiträgen referenziert werden."}
       </span>
       <div className="flex flex-col mr-2">
         <div className="flex flex-row w-full items-center justify-between gap-1">
@@ -659,16 +661,21 @@ export const EvidencesPopup: React.FC<EvidencesPopupProps> = ({
         <div className="flex border-t border-lightGrey rounded-b-lg py-2 items-center gap-2 justify-between mt-4 mb-2 mx-6">
           {currentEvidenceList.length <= 0 ? (
             <div className="flex flex-col gap-2 items-center">
-              <span className="italic">Keine Beweise</span>
+              <span className="italic">
+                {isAttachmentInRubrum ? "Keine Anlagen" : "Keine Beweise"}
+              </span>
             </div>
           ) : (
             <div className="flex flex-col gap-1 w-full max-h-56 overflow-auto">
               <span className="ml-1 font-bold">
-                {(currentEvidenceList.length === 1 ? "Beweis" : "Beweise") +
-                  (currentCaveatOfProof
-                    ? " unter Verwahrung gegen die Beweislast"
-                    : "") +
-                  ":"}
+                {isAttachmentInRubrum
+                  ? (currentEvidenceList.length === 1 ? "Anlage" : "Anlagen") +
+                    ":"
+                  : (currentEvidenceList.length === 1 ? "Beweis" : "Beweise") +
+                    (currentCaveatOfProof
+                      ? " unter Verwahrung gegen die Beweislast"
+                      : "") +
+                    ":"}
               </span>
 
               <div className="flex flex-col flex-wrap gap-1">
@@ -852,26 +859,31 @@ export const EvidencesPopup: React.FC<EvidencesPopupProps> = ({
           )}
         </div>
       </div>
-      <div>
-        <input
-          autoFocus={false}
-          type="checkbox"
-          name="caveat"
-          checked={currentCaveatOfProof}
-          placeholder="Beweislast"
-          className="bg-offWhite px-2 m-0 w-8 accent-darkGrey"
-          onChange={(e) => caveatOfProofClicked(e)}
-        />
-        Zusatz "Unter Verwahrung gegen die Beweislast" hinzufügen
-      </div>
+      {!isAttachmentInRubrum && (
+        <div>
+          <input
+            autoFocus={false}
+            type="checkbox"
+            name="caveat"
+            checked={currentCaveatOfProof}
+            placeholder="Beweislast"
+            className="bg-offWhite px-2 m-0 w-8 accent-darkGrey"
+            onChange={(e) => caveatOfProofClicked(e)}
+          />
+          Zusatz "Unter Verwahrung gegen die Beweislast" hinzufügen
+        </div>
+      )}
       <div className="flex items-center justify-end">
         <button
           className="bg-darkGrey hover:bg-mediumGrey rounded-md text-white py-2 px-3 text-sm"
           onClick={() => {
             saveEvidences();
           }}>
-          {(currentEvidenceList.length === 1 ? "Beweis" : "Beweise") +
-            " speichern"}
+          {isAttachmentInRubrum
+            ? (currentEvidenceList.length === 1 ? "Anlage" : "Anlagen") +
+              " speichern"
+            : (currentEvidenceList.length === 1 ? "Beweis" : "Beweise") +
+              " speichern"}
         </button>
       </div>
 

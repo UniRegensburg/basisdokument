@@ -32,6 +32,8 @@ interface IProps {
   currentVersion: number;
   versionHistory: IVersion[];
   metaData: IMetaData | null;
+  metaDataAttachmentPlaintiff: IEvidence[];
+  metaDataAttachmentDefendant: IEvidence[];
   entries: IEntry[];
   sectionList: ISection[];
   evidenceList: IEvidence[];
@@ -53,6 +55,8 @@ export const ExportPopup: React.FC<IProps> = ({
   currentVersion,
   versionHistory,
   metaData,
+  metaDataAttachmentPlaintiff,
+  metaDataAttachmentDefendant,
   entries,
   sectionList,
   evidenceList,
@@ -153,6 +157,8 @@ export const ExportPopup: React.FC<IProps> = ({
         currentVersion,
         versionHistory,
         metaData,
+        metaDataAttachmentPlaintiff,
+        metaDataAttachmentDefendant,
         entries,
         sectionList,
         evidenceList,

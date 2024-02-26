@@ -162,7 +162,7 @@ function getEntryTitle(entryId: any, obj: any) {
 //add evidences in one string because of autotable commas
 function getEvidenceNumeration(
   evidenceList: IEvidence[],
-  evidenceIds: Array<string>
+  evidenceIds?: Array<string>
 ) {
   var numEvidences: string = "";
   if (evidenceIds) {
@@ -193,8 +193,35 @@ function getEvidenceNumeration(
         }
       }
     }
-    return numEvidences;
+  } else {
+    if (evidenceList.length === 1) {
+      let evidence = evidenceList[0].name;
+      if (evidenceList[0].hasAttachment) {
+        evidence = evidence + " als Anlage " + evidenceList[0].attachmentId;
+      }
+      if (evidenceList[0].hasImageFile) {
+        evidence = evidence + ": " + evidenceList[0].imageFilename;
+      }
+      numEvidences = numEvidences + evidence;
+    } else {
+      for (let i = 0; i < evidenceList.length; i++) {
+        let evidence = i + 1 + ") " + evidenceList[i].name;
+        if (evidenceList[i].hasAttachment) {
+          evidence = evidence + " als Anlage " + evidenceList[i].attachmentId;
+        }
+        if (evidenceList[i].hasImageFile) {
+          evidence = evidence + ": " + evidenceList[i].imageFilename;
+        }
+        //do not add line break/empty line to last item
+        if (i === evidenceList.length - 1) {
+          numEvidences = numEvidences + evidence;
+        } else {
+          numEvidences = numEvidences + evidence + "\n";
+        }
+      }
+    }
   }
+  return numEvidences;
 }
 
 //parse HTML to string to remove tags
@@ -308,6 +335,18 @@ async function downloadBasisdokumentAsPDF(
   }
   rubrumKlage = [parseHTMLtoString(metaPlaintiff)];
 
+  let metaAttachmentPlaintiff;
+  if (obj["metaDataAttachmentPlaintiff"].length > 0) {
+    if (obj["metaDataAttachmentPlaintiff"].length > 1) {
+      metaAttachmentPlaintiff =
+        "Anhänge:\n" +
+        getEvidenceNumeration(obj["metaDataAttachmentPlaintiff"]);
+    } else {
+      metaAttachmentPlaintiff =
+        "Anhang:\n" + getEvidenceNumeration(obj["metaDataAttachmentPlaintiff"]);
+    }
+  }
+
   // Rubrum Defendant
   let metaDefendant;
   if (obj["metaData"] && obj["metaData"]["defendant"] !== undefined) {
@@ -316,6 +355,18 @@ async function downloadBasisdokumentAsPDF(
     metaDefendant = "Es wurde kein Rubrum von der Beklagtenpartei angelegt.";
   }
   rubrumBeklagt = [parseHTMLtoString(metaDefendant)];
+
+  let metaAttachmentDefendant;
+  if (obj["metaDataAttachmentDefendant"].length > 0) {
+    if (obj["metaDataAttachmentDefendant"].length > 1) {
+      metaAttachmentDefendant =
+        "Anhänge:\n" +
+        getEvidenceNumeration(obj["metaDataAttachmentDefendant"]);
+    } else {
+      metaAttachmentDefendant =
+        "Anhang:\n" + getEvidenceNumeration(obj["metaDataAttachmentDefendant"]);
+    }
+  }
 
   // hints from the judge §139 ZPO
   if (obj["judgeHints"].length === 0) {
@@ -533,18 +584,25 @@ async function downloadBasisdokumentAsPDF(
   basisdokument = [];
 
   //autotable rubrum plaintiff
+  let rubrumPlainData;
+  if (metaAttachmentPlaintiff) {
+    rubrumPlainData = [[rubrumKlage], [metaAttachmentPlaintiff]];
+  } else {
+    rubrumPlainData = [rubrumKlage];
+  }
   autoTable(doc, {
     theme: "grid",
     styles: { halign: "center" },
     head: [["Rubrum Klagepartei"]],
     headStyles: { fillColor: [0, 102, 204] },
-    body: [rubrumKlage],
+    body: rubrumPlainData,
     didDrawPage: function () {
       doc.outline.add(null, "Rubrum Klagepartei", {
         pageNumber: doc.getCurrentPageInfo().pageNumber,
       });
     },
   });
+  rubrumPlainData = [];
   //additional pdf with only new entries
   autoTable(newDoc, {
     theme: "grid",
@@ -569,18 +627,25 @@ async function downloadBasisdokumentAsPDF(
   rubrumKlage = [];
 
   //autotable rubrum defendant
+  let rubrumDefData;
+  if (metaAttachmentDefendant) {
+    rubrumDefData = [[rubrumBeklagt], [metaAttachmentDefendant]];
+  } else {
+    rubrumDefData = [rubrumBeklagt];
+  }
   autoTable(doc, {
     theme: "grid",
     styles: { halign: "center" },
     head: [["Rubrum Beklagtenpartei"]],
     headStyles: { fillColor: [0, 102, 204] },
-    body: [rubrumBeklagt],
+    body: rubrumDefData,
     didDrawPage: function () {
       doc.outline.add(null, "Rubrum Beklagtenpartei", {
         pageNumber: doc.getCurrentPageInfo().pageNumber,
       });
     },
   });
+  rubrumDefData = [];
   //additional pdf with only new entries
   autoTable(newDoc, {
     theme: "grid",
@@ -1053,6 +1118,8 @@ export function downloadBasisdokument(
   currentVersion: number,
   versionHistory: IVersion[],
   metaData: IMetaData | null,
+  metaDataAttachmentPlaintiff: IEvidence[],
+  metaDataAttachmentDefendant: IEvidence[],
   entries: IEntry[],
   sectionList: ISection[],
   evidenceList: IEvidence[],
@@ -1078,6 +1145,10 @@ export function downloadBasisdokument(
     "timestamp"
   ] = new Date() /*.toLocaleString("de-DE", {timeZone: "Europe/Berlin"})*/;
   basisdokumentObject["metaData"] = metaData;
+  basisdokumentObject["metaDataAttachmentPlaintiff"] =
+    metaDataAttachmentPlaintiff;
+  basisdokumentObject["metaDataAttachmentDefendant"] =
+    metaDataAttachmentDefendant;
   basisdokumentObject["entries"] = entries;
   basisdokumentObject["sections"] = sectionList;
   basisdokumentObject["evidences"] = evidenceList;
