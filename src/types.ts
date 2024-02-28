@@ -112,6 +112,7 @@ export interface IEntry {
   evidences?: IEvidence[];
   evidenceIds: string[];
   caveatOfProof: boolean;
+  associatedEntryText?: string;
 }
 
 export enum IDragItemType {
