@@ -61,7 +61,8 @@ interface EntryProps {
   shownInPopup?: boolean;
   setAssociatedEntryInProgress?: (
     entry: IEntry,
-    setIsNewEntryVisible: React.Dispatch<SetStateAction<boolean>>
+    setIsNewEntryVisible: React.Dispatch<SetStateAction<boolean>>,
+    associatedEntryText: string
   ) => void;
 }
 
@@ -106,7 +107,7 @@ export const Entry: React.FC<EntryProps> = ({
     setPlaintiffFileVolume,
     setDefendantFileVolume,
   } = useEvidence();
-  const { setEntryIdOpen } = useEntries();
+  const { setEntryIdOpen, associatedSelection } = useEntries();
 
   const versionTimestamp = versionHistory[entry.version - 1].timestamp;
 
@@ -134,7 +135,8 @@ export const Entry: React.FC<EntryProps> = ({
   const { bookmarks, setBookmarks, deleteBookmarkByReference } = useBookmarks();
   const { setActiveSidebar } = useSidebar();
   const { user } = useUser();
-  const { entryIdOpen, setIsEntryPopupOpen } = useEntries();
+  const { entryIdOpen, setIsEntryPopupOpen, checkAssociatedText } =
+    useEntries();
 
   const isJudge = viewedBy === UserRole.Judge;
   const isPlaintiff = entry.role === UserRole.Plaintiff;
@@ -169,7 +171,14 @@ export const Entry: React.FC<EntryProps> = ({
     if (!getBrowser().includes("Firefox"))
       setTimeout(() => createAssociatedEntryButton.current?.click(), 1);
     if (view === ViewMode.SideBySide) {
-      setAssociatedEntryInProgress!(entry, setIsNewEntryVisible);
+      console.log(entry);
+      setAssociatedEntryInProgress!(
+        entry,
+        setIsNewEntryVisible,
+        checkAssociatedText(associatedSelection, entry.id)
+          ? associatedSelection
+          : ""
+      );
     } else {
       setIsNewEntryVisible(true);
     }
@@ -601,6 +610,18 @@ export const Entry: React.FC<EntryProps> = ({
                     </div>
                   )}
                 </EntryHeader>
+                {/* Associated Selection */}
+                {entry.associatedEntryText && (
+                  <div
+                    className={cx("p-3 border border-t-0 bg-white", {
+                      [`border-${getTheme(selectedTheme)?.secondaryPlaintiff}`]:
+                        isPlaintiff,
+                      [`border-${getTheme(selectedTheme)?.secondaryDefendant}`]:
+                        !isPlaintiff,
+                    })}>
+                    {"'" + entry.associatedEntryText + "'"}
+                  </div>
+                )}
                 {/* Body */}
                 {isBodyOpen && !isEditing && (
                   <EntryBody

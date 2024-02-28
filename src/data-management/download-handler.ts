@@ -144,7 +144,7 @@ function getEntryTimestamp(childEntry: any, obj: any) {
 }
 
 //get associated entry title
-function getEntryTitle(entryId: any, obj: any) {
+function getEntryTitle(entryId: any, obj: any, associatedEntryText: string) {
   if (entryId) {
     let title;
     for (var i = 0; i < obj["entries"].length; i++) {
@@ -152,6 +152,10 @@ function getEntryTitle(entryId: any, obj: any) {
         title =
           obj["entries"][i].entryCode + " | Autor: " + obj["entries"][i].author;
       }
+    }
+    //add associatedEntryText if there is one
+    if (associatedEntryText !== undefined) {
+      title = `${title}\n'${associatedEntryText}'`;
     }
     return "Antwort auf: " + title;
   } else {
@@ -404,7 +408,11 @@ async function downloadBasisdokumentAsPDF(
             getEntryTimestamp(entry, obj),
           text: parseHTMLtoString(entry.text),
           version: entry.version,
-          associatedEntry: getEntryTitle(entry.associatedEntry, obj),
+          associatedEntry: getEntryTitle(
+            entry.associatedEntry,
+            obj,
+            entry.associatedEntryText
+          ),
           evidences: !entry.evidenceIds?.length
             ? undefined
             : entry.evidences?.length > 1
@@ -429,7 +437,11 @@ async function downloadBasisdokumentAsPDF(
             title: entry.entryCode + " | " + entry.author + " | " + entry.role,
             text: parseHTMLtoString(entry.text),
             version: entry.version,
-            associatedEntry: getEntryTitle(entry.associatedEntry, obj),
+            associatedEntry: getEntryTitle(
+              entry.associatedEntry,
+              obj,
+              entry.associatedEntryText
+            ),
             evidences: !entry.evidenceIds?.length
               ? undefined
               : entry.evidences?.length > 1

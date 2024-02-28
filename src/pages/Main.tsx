@@ -6,6 +6,7 @@ import { useBeforeunload } from "react-beforeunload";
 import {
   useBookmarks,
   useCase,
+  useEntries,
   useExport,
   useHeaderContext,
   useHints,
@@ -17,6 +18,7 @@ import { PopupContainer } from "../components/moveable-popups/PopupContainer";
 import { ExportPopup } from "../components/moveable-popups/ExportPopup";
 import { NotePopup } from "../components/moveable-popups/NotePopup";
 import { JudgeHintPopup } from "../components/moveable-popups/JudgeHintPopup";
+import React, { useState } from "react";
 
 export const Main: React.FC = () => {
   useBeforeunload(
@@ -54,6 +56,15 @@ export const Main: React.FC = () => {
   } = useEvidence();
   const { versionHistory, colorSelection } = useHeaderContext();
   const { bookmarks } = useBookmarks();
+  const [currentSelection, setCurrentSelection] = useState<string | undefined>(
+    ""
+  );
+  const { setAssociatedSelection } = useEntries();
+
+  const checkForSelection = (e: React.MouseEvent) => {
+    setCurrentSelection(window.getSelection()?.toString());
+    setAssociatedSelection(currentSelection ? currentSelection : "");
+  };
 
   return (
     <div className="flex w-full h-full">
@@ -109,7 +120,9 @@ export const Main: React.FC = () => {
               individualSorting={individualSorting}></ExportPopup>
           }></PopupContainer>
       ) : null}
-      <main className="w-full flex flex-col">
+      <main
+        className="w-full flex flex-col"
+        onMouseUp={(e: React.MouseEvent) => checkForSelection(e)}>
         <Header />
         <Discussion />
       </main>

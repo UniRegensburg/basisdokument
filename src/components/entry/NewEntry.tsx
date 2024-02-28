@@ -38,6 +38,7 @@ interface NewEntryProps {
   sectionId: string;
   associatedEntry?: string;
   onClose?: (id: string) => void;
+  associatedSelection?: string;
 }
 
 export const NewEntry: React.FC<NewEntryProps> = ({
@@ -46,6 +47,7 @@ export const NewEntry: React.FC<NewEntryProps> = ({
   sectionId,
   associatedEntry,
   onClose,
+  associatedSelection,
 }) => {
   const { selectedTheme } = useHeaderContext();
   const [isExpanded, setIsExpanded] = useState<boolean>(true);
@@ -58,7 +60,7 @@ export const NewEntry: React.FC<NewEntryProps> = ({
   const { sectionList } = useSection();
   const { updateEvidenceList, setPlaintiffFileVolume, setDefendantFileVolume } =
     useEvidence();
-  const { setEntryIdOpen } = useEntries();
+  const { setEntryIdOpen, checkAssociatedText } = useEntries();
 
   const isPlaintiff = roleForNewEntry === UserRole.Plaintiff;
   const entryCodePrefix = isPlaintiff ? "K" : "B";
@@ -68,7 +70,8 @@ export const NewEntry: React.FC<NewEntryProps> = ({
     plainText: string,
     rawHtml: string,
     evidences: IEvidence[],
-    caveatOfProof: boolean
+    caveatOfProof: boolean,
+    associatedSelection?: string
   ) => {
     if (plainText.length === 0) {
       toast("Bitte geben sie einen Text ein.", { type: "error" });
@@ -96,6 +99,12 @@ export const NewEntry: React.FC<NewEntryProps> = ({
 
     if (associatedEntry) {
       entry.associatedEntry = associatedEntry;
+      if (
+        associatedSelection !== "" &&
+        checkAssociatedText(associatedSelection!, associatedEntry)
+      ) {
+        entry.associatedEntryText = associatedSelection;
+      }
     }
 
     const individualEntrySortingEntry: IndividualEntrySortingEntry = {
@@ -233,6 +242,18 @@ export const NewEntry: React.FC<NewEntryProps> = ({
               }}
             />
           </EntryHeader>
+          {/* Associated Selection */}
+          {associatedSelection && (
+            <div
+              className={cx("p-3 border border-t-0 bg-white", {
+                [`border-${getTheme(selectedTheme)?.secondaryPlaintiff}`]:
+                  isPlaintiff,
+                [`border-${getTheme(selectedTheme)?.secondaryDefendant}`]:
+                  !isPlaintiff,
+              })}>
+              {"'" + associatedSelection + "'"}
+            </div>
+          )}
           {/* Toolbar */}
           <EntryForm
             caveatOfProof={false}
@@ -253,7 +274,13 @@ export const NewEntry: React.FC<NewEntryProps> = ({
               plaintiffFileVolume,
               defendantFileVolume
             ) => {
-              createEntry(plainText, rawHtml, evidences, caveatOfProof);
+              createEntry(
+                plainText,
+                rawHtml,
+                evidences,
+                caveatOfProof,
+                associatedSelection
+              );
               setPlaintiffFileVolume(plaintiffFileVolume);
               setDefendantFileVolume(defendantFileVolume);
             }}
