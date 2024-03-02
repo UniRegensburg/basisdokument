@@ -29,6 +29,13 @@ interface IEvidenceContext {
   defendantFileVolume: number;
   setDefendantFileVolume: Dispatch<SetStateAction<number>>;
   getFileSize: (file: string) => number;
+  // attachments Rubren
+  plaintiffAttachments: IEvidence[];
+  setPlaintiffAttachments: Dispatch<SetStateAction<IEvidence[]>>;
+  removePlaintiffAttachments: (attachments: IEvidence) => void;
+  defendantAttachments: IEvidence[];
+  setDefendantAttachments: Dispatch<SetStateAction<IEvidence[]>>;
+  removeDefendantAttachments: (attachments: IEvidence) => void;
 }
 
 export const EvidenceContext = createContext<IEvidenceContext | null>(null);
@@ -49,10 +56,16 @@ export const EvidenceProvider: React.FC<EvidenceProviderProps> = ({
   >([]);
   const [plaintiffFileVolume, setPlaintiffFileVolume] = useState<number>(0);
   const [defendantFileVolume, setDefendantFileVolume] = useState<number>(0);
+  const [plaintiffAttachments, setPlaintiffAttachments] = useState<IEvidence[]>(
+    []
+  );
+  const [defendantAttachments, setDefendantAttachments] = useState<IEvidence[]>(
+    []
+  );
 
   useEffect(() => {}, [evidenceList]);
 
-  const updateEvidenceList = (evidences: IEvidence[], entries: IEntry[]) => {
+  const updateEvidenceList = (evidences: IEvidence[]) => {
     // if evidenceList is empty, set first evidences
     if (evidenceList.length <= 0) {
       setEvidenceList(evidences);
@@ -65,23 +78,15 @@ export const EvidenceProvider: React.FC<EvidenceProviderProps> = ({
     // if yes: overwrite with newer evidence version
     // if not: push to to-update list
     for (let i = 0; i < evidences.length; i++) {
-      for (let j = 0; j < updatedEvidenceList.length; j++) {
-        if (evidences[i].id === updatedEvidenceList[j].id) {
-          updatedEvidenceList[j] = evidences[i];
-        } else {
-          updatedEvidenceList.push(evidences[i]);
-        }
+      let checkForUpdate = updatedEvidenceList.findIndex(
+        (ev) => ev.id === evidences[i].id
+      );
+      if (checkForUpdate !== -1) {
+        updatedEvidenceList[checkForUpdate] = evidences[i];
+      } else {
+        updatedEvidenceList.push(evidences[i]);
       }
     }
-    /* // also check if some of the evidences have to be deleted completely
-    // duplicate code (see removeEvidencesWithoutReferences) because of asynchronous setState -> not finished when
-    for (let k = 0; k < updatedEvidenceList.length; k++) {
-      if (
-        getEntryCodesForEvidence(entries, updatedEvidenceList[k])?.length === 0
-      ) {
-        removeFromEvidenceList(updatedEvidenceList[k]);
-      }
-    } */
     // set updated list as new evidenceList
     setEvidenceList(updatedEvidenceList);
   };
@@ -159,6 +164,28 @@ export const EvidenceProvider: React.FC<EvidenceProviderProps> = ({
     return evidenceIds;
   };
 
+  const removePlaintiffAttachments = (attachment: IEvidence) => {
+    // check if attachment has file to update data volume
+    if (attachment.hasImageFile && attachment.imageFile) {
+      let imgFileSize = getFileSize(attachment.imageFile);
+      setPlaintiffFileVolume(plaintiffFileVolume - imgFileSize);
+      setPlaintiffAttachments(
+        plaintiffAttachments.filter((att) => att.id !== attachment.id)
+      );
+    }
+  };
+
+  const removeDefendantAttachments = (attachment: IEvidence) => {
+    // check if attachment has file to update data volume
+    if (attachment.hasImageFile && attachment.imageFile) {
+      let imgFileSize = getFileSize(attachment.imageFile);
+      setDefendantFileVolume(defendantFileVolume - imgFileSize);
+      setDefendantAttachments(
+        defendantAttachments.filter((att) => att.id !== attachment.id)
+      );
+    }
+  };
+
   return (
     <EvidenceContext.Provider
       value={{
@@ -178,6 +205,12 @@ export const EvidenceProvider: React.FC<EvidenceProviderProps> = ({
         defendantFileVolume,
         setDefendantFileVolume,
         getFileSize,
+        plaintiffAttachments,
+        setPlaintiffAttachments,
+        removePlaintiffAttachments,
+        defendantAttachments,
+        setDefendantAttachments,
+        removeDefendantAttachments,
       }}>
       {children}
     </EvidenceContext.Provider>

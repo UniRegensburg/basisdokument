@@ -6,6 +6,7 @@ import { useBeforeunload } from "react-beforeunload";
 import {
   useBookmarks,
   useCase,
+  useEntries,
   useExport,
   useHeaderContext,
   useHints,
@@ -17,6 +18,7 @@ import { PopupContainer } from "../components/moveable-popups/PopupContainer";
 import { ExportPopup } from "../components/moveable-popups/ExportPopup";
 import { NotePopup } from "../components/moveable-popups/NotePopup";
 import { JudgeHintPopup } from "../components/moveable-popups/JudgeHintPopup";
+import React, { useState } from "react";
 
 export const Main: React.FC = () => {
   useBeforeunload(
@@ -51,9 +53,20 @@ export const Main: React.FC = () => {
     evidenceIdsDefendant,
     plaintiffFileVolume,
     defendantFileVolume,
+    plaintiffAttachments,
+    defendantAttachments,
   } = useEvidence();
   const { versionHistory, colorSelection } = useHeaderContext();
   const { bookmarks } = useBookmarks();
+  const [currentSelection, setCurrentSelection] = useState<string | undefined>(
+    ""
+  );
+  const { setAssociatedSelection } = useEntries();
+
+  const checkForSelection = (e: React.MouseEvent) => {
+    setCurrentSelection(window.getSelection()?.toString());
+    setAssociatedSelection(currentSelection ? currentSelection : "");
+  };
 
   return (
     <div className="flex w-full h-full">
@@ -94,6 +107,8 @@ export const Main: React.FC = () => {
               currentVersion={currentVersion}
               versionHistory={versionHistory}
               metaData={metaData}
+              metaDataAttachmentPlaintiff={plaintiffAttachments}
+              metaDataAttachmentDefendant={defendantAttachments}
               entries={entries}
               sectionList={sectionList}
               evidenceList={evidenceList}
@@ -109,7 +124,9 @@ export const Main: React.FC = () => {
               individualSorting={individualSorting}></ExportPopup>
           }></PopupContainer>
       ) : null}
-      <main className="w-full flex flex-col">
+      <main
+        className="w-full flex flex-col"
+        onMouseUp={(e: React.MouseEvent) => checkForSelection(e)}>
         <Header />
         <Discussion />
       </main>

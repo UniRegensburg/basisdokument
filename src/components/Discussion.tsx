@@ -12,6 +12,7 @@ import { MetaData } from "./metadata/MetaData";
 import { SectionHeader } from "./section-header/SectionHeader";
 import { MetaDataHeader } from "./metadata/MetaDataHeader";
 import { useState } from "react";
+import { useEvidence } from "../contexts/EvidenceContext";
 
 export const Discussion = () => {
   const [isBodyOpenPlaintiff, setIsBodyOpenPlaintiff] = useState<boolean>(true);
@@ -20,6 +21,7 @@ export const Discussion = () => {
   const { groupedEntries } = useCase();
   const { sectionList, individualSorting } = useSection();
   const { user } = useUser();
+  const { plaintiffAttachments, defendantAttachments } = useEvidence();
 
   const {
     selectedSorting,
@@ -67,11 +69,19 @@ export const Discussion = () => {
           </div>
           <div className="grid grid-cols-2 gap-6 ml-[40px] mt-4">
             {isBodyOpenPlaintiff ? (
-              <MetaData owner={UserRole.Plaintiff} />
+              <MetaData
+                owner={UserRole.Plaintiff}
+                attachments={plaintiffAttachments}
+              />
             ) : (
               <div></div>
             )}
-            {isBodyOpenDefendant && <MetaData owner={UserRole.Defendant} />}
+            {isBodyOpenDefendant && (
+              <MetaData
+                owner={UserRole.Defendant}
+                attachments={defendantAttachments}
+              />
+            )}
           </div>
           {selectedSorting === Sorting.Privat && showEntrySorting ? (
             <JudgeDiscussion />

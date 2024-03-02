@@ -13,13 +13,13 @@ import {
   PatchnotesProvider,
   SectionProvider,
   UserProvider,
+  EvidenceProvider,
+  OnboardingProvider,
+  SidebarProvider,
+  ViewProvider,
 } from "./contexts";
 import { Auth } from "./pages/Auth";
 import { Main } from "./pages/Main";
-import { OnboardingProvider } from "./contexts/OnboardingContext";
-import { SidebarProvider } from "./contexts/SidebarContext";
-import { ViewProvider } from "./contexts/ViewContext";
-import { EvidenceProvider } from "./contexts/EvidenceContext";
 
 const registerKeyListener = (e: KeyboardEvent) => {
   if (e.key === "r" && e.metaKey) {

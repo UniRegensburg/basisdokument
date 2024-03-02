@@ -108,6 +108,8 @@ export const Auth: React.FC<AuthProps> = ({ setIsAuthenticated }) => {
     setEvidenceIdsDefendant,
     setPlaintiffFileVolume,
     setDefendantFileVolume,
+    setPlaintiffAttachments,
+    setDefendantAttachments,
   } = useEvidence();
 
   // Set React states when user enters/changes text input fields
@@ -349,6 +351,14 @@ export const Auth: React.FC<AuthProps> = ({ setIsAuthenticated }) => {
   // The imported data from the files is then merged into a React state (context provider).
   const setContextFromBasisdokument = (basisdokument: any) => {
     setVersionHistory(basisdokument.versions);
+    //if attachments are in plaintiff rubrum
+    if (basisdokument.metaDataAttachmentPlaintiff) {
+      setPlaintiffAttachments(basisdokument.metaDataAttachmentPlaintiff);
+    }
+    //if attachments are in defendant rubrum
+    if (basisdokument.metaDataAttachmentDefendant) {
+      setDefendantAttachments(basisdokument.metaDataAttachmentDefendant);
+    }
     //if evidences are already in own list
     if (basisdokument.evidences) {
       setEntries(basisdokument.entries);

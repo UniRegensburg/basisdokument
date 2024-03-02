@@ -26,16 +26,22 @@ export const EntryList: React.FC<EntryListProps> = ({
     {
       entry: IEntry;
       visibilitySetter: React.Dispatch<SetStateAction<boolean>>;
+      associatedSelection: string;
     }[]
   >([]);
 
   const showNewEntry = (
     entry: IEntry,
-    setIsNewEntryVisible: React.Dispatch<SetStateAction<boolean>>
+    setIsNewEntryVisible: React.Dispatch<SetStateAction<boolean>>,
+    associatedSelection: string
   ) => {
     if (!associatedsList.find((assoc) => assoc.entry.id === entry.id)) {
       setAssociatedsList((prevAssociateds) => [
-        { entry: entry, visibilitySetter: setIsNewEntryVisible },
+        {
+          entry: entry,
+          visibilitySetter: setIsNewEntryVisible,
+          associatedSelection: associatedSelection,
+        },
         ...prevAssociateds,
       ]);
     }
@@ -143,6 +149,7 @@ export const EntryList: React.FC<EntryListProps> = ({
                 associatedEntry={elem.entry.id}
                 setIsNewEntryVisible={elem.visibilitySetter}
                 onClose={onNewEntryClosed}
+                associatedSelection={elem.associatedSelection}
               />
             ))}
           </div>
