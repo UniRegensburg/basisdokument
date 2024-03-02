@@ -171,7 +171,6 @@ export const Entry: React.FC<EntryProps> = ({
     if (!getBrowser().includes("Firefox"))
       setTimeout(() => createAssociatedEntryButton.current?.click(), 1);
     if (view === ViewMode.SideBySide) {
-      console.log(entry);
       setAssociatedEntryInProgress!(
         entry,
         setIsNewEntryVisible,
@@ -613,13 +612,18 @@ export const Entry: React.FC<EntryProps> = ({
                 {/* Associated Selection */}
                 {entry.associatedEntryText && (
                   <div
-                    className={cx("p-3 border border-t-0 bg-white", {
-                      [`border-${getTheme(selectedTheme)?.secondaryPlaintiff}`]:
-                        isPlaintiff,
-                      [`border-${getTheme(selectedTheme)?.secondaryDefendant}`]:
-                        !isPlaintiff,
-                    })}>
-                    {"'" + entry.associatedEntryText + "'"}
+                    className={cx(
+                      "p-3 border border-t-0 bg-white text-zinc-600",
+                      {
+                        [`border-${
+                          getTheme(selectedTheme)?.secondaryPlaintiff
+                        }`]: isPlaintiff,
+                        [`border-${
+                          getTheme(selectedTheme)?.secondaryDefendant
+                        }`]: !isPlaintiff,
+                      }
+                    )}>
+                    {"\u00bb" + entry.associatedEntryText + "\u00ab"}
                   </div>
                 )}
                 {/* Body */}

@@ -245,13 +245,13 @@ export const NewEntry: React.FC<NewEntryProps> = ({
           {/* Associated Selection */}
           {associatedSelection && (
             <div
-              className={cx("p-3 border border-t-0 bg-white", {
+              className={cx("p-3 border border-t-0 bg-white text-zinc-600", {
                 [`border-${getTheme(selectedTheme)?.secondaryPlaintiff}`]:
                   isPlaintiff,
                 [`border-${getTheme(selectedTheme)?.secondaryDefendant}`]:
                   !isPlaintiff,
               })}>
-              {"'" + associatedSelection + "'"}
+              {"\u00bb" + associatedSelection + "\u00ab"}
             </div>
           )}
           {/* Toolbar */}

@@ -155,7 +155,7 @@ function getEntryTitle(entryId: any, obj: any, associatedEntryText: string) {
     }
     //add associatedEntryText if there is one
     if (associatedEntryText !== undefined) {
-      title = `${title}\n'${associatedEntryText}'`;
+      title = `${title}\n \u00bb ${associatedEntryText} \u00ab`;
     }
     return "Antwort auf: " + title;
   } else {
