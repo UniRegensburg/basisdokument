@@ -5,6 +5,7 @@ import { useUser } from "../../contexts/UserContext";
 import { useView } from "../../contexts/ViewContext";
 import { IEntry, UserRole, ViewMode } from "../../types";
 import { Entry, NewEntry } from "./";
+import { AddEntryButtons } from "../AddEntryButtons";
 
 interface EntryListProps {
   entriesList: IEntry[];
@@ -83,22 +84,36 @@ export const EntryList: React.FC<EntryListProps> = ({
                     entr.role === UserRole.Plaintiff
                 )
                 .map((plaintiffEntry) => (
-                  <Entry
-                    key={plaintiffEntry.id}
-                    entry={plaintiffEntry}
-                    isOld={plaintiffEntry.version < currentVersion}
-                    viewedBy={user!.role}
-                    isBookmarked={
-                      bookmarks.find(
-                        (bookmark) =>
-                          bookmark.associatedEntry === plaintiffEntry.id
-                      )
-                        ? true
-                        : false
-                    }
-                    setAssociatedEntryInProgress={showNewEntry}
-                  />
+                  <React.Fragment key={plaintiffEntry.id}>
+                    <AddEntryButtons
+                      sectionId={plaintiffEntry.sectionId}
+                      entryBelowId={plaintiffEntry.id}
+                      lastEntry={false}
+                      userRole={UserRole.Plaintiff}
+                    />
+                    <Entry
+                      key={plaintiffEntry.id}
+                      entry={plaintiffEntry}
+                      isOld={plaintiffEntry.version < currentVersion}
+                      viewedBy={user!.role}
+                      isBookmarked={
+                        bookmarks.find(
+                          (bookmark) =>
+                            bookmark.associatedEntry === plaintiffEntry.id
+                        )
+                          ? true
+                          : false
+                      }
+                      setAssociatedEntryInProgress={showNewEntry}
+                    />
+                  </React.Fragment>
                 ))}
+              <AddEntryButtons
+                sectionId={sectionId}
+                entryBelowId={undefined}
+                lastEntry={true}
+                userRole={UserRole.Plaintiff}
+              />
             </div>
             <div className="flex flex-col w-1/2 gap-5">
               {entries
@@ -108,22 +123,40 @@ export const EntryList: React.FC<EntryListProps> = ({
                     entr.role === UserRole.Defendant
                 )
                 .map((defendantEntry) => (
-                  <Entry
-                    key={defendantEntry.id}
-                    entry={defendantEntry}
-                    isOld={defendantEntry.version < currentVersion}
-                    viewedBy={user!.role}
-                    isBookmarked={
-                      bookmarks.find(
-                        (bookmark) =>
-                          bookmark.associatedEntry === defendantEntry.id
-                      )
-                        ? true
-                        : false
-                    }
-                    setAssociatedEntryInProgress={showNewEntry}
-                  />
+                  <React.Fragment key={defendantEntry.id}>
+                    <div className="pl-3">
+                      <AddEntryButtons
+                        sectionId={defendantEntry.sectionId}
+                        entryBelowId={defendantEntry.id}
+                        lastEntry={false}
+                        userRole={UserRole.Defendant}
+                      />
+                    </div>
+                    <Entry
+                      key={defendantEntry.id}
+                      entry={defendantEntry}
+                      isOld={defendantEntry.version < currentVersion}
+                      viewedBy={user!.role}
+                      isBookmarked={
+                        bookmarks.find(
+                          (bookmark) =>
+                            bookmark.associatedEntry === defendantEntry.id
+                        )
+                          ? true
+                          : false
+                      }
+                      setAssociatedEntryInProgress={showNewEntry}
+                    />
+                  </React.Fragment>
                 ))}
+              <div className="pl-3">
+                <AddEntryButtons
+                  sectionId={sectionId}
+                  entryBelowId={undefined}
+                  lastEntry={true}
+                  userRole={UserRole.Defendant}
+                />
+              </div>
             </div>
           </div>
 
