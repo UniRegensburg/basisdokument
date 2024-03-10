@@ -4,7 +4,6 @@ import { useCase, useHeaderContext, useSection, useUser } from "../contexts";
 import { Sorting, UserRole } from "../types";
 import { getOriginalSortingPosition } from "../util/get-original-sorting-position";
 import { getRequestedSorting } from "../util/get-requested-sorting";
-import { AddEntryButtons } from "./AddEntryButtons";
 import { AddSection } from "./AddSection";
 import { EntryList } from "./entry";
 import { JudgeDiscussion } from "./JudgeDiscussion";
@@ -113,10 +112,6 @@ export const Discussion = () => {
                           entriesList={sectionEntries?.parent || []}
                           sectionId={section.id}
                         />
-
-                        {user?.role !== UserRole.Client && (
-                          <AddEntryButtons sectionId={section.id} />
-                        )}
                       </div>
                     </div>
                   </div>

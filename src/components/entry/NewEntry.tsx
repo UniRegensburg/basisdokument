@@ -39,6 +39,8 @@ interface NewEntryProps {
   associatedEntry?: string;
   onClose?: (id: string) => void;
   associatedSelection?: string;
+  entryBelowId?: string;
+  lastEntry?: boolean;
 }
 
 export const NewEntry: React.FC<NewEntryProps> = ({
@@ -48,6 +50,8 @@ export const NewEntry: React.FC<NewEntryProps> = ({
   associatedEntry,
   onClose,
   associatedSelection,
+  entryBelowId,
+  lastEntry,
 }) => {
   const { selectedTheme } = useHeaderContext();
   const [isExpanded, setIsExpanded] = useState<boolean>(true);
@@ -78,8 +82,39 @@ export const NewEntry: React.FC<NewEntryProps> = ({
       return;
     }
 
-    const newEntryCount =
-      entries.filter((entry) => entry.sectionId === sectionId).length + 1;
+    const setNewEntryCodes = (sectionId: string, fromId: string) => {
+      setEntries(
+        entries.map((entr) => {
+          if (sectionId === entr.sectionId) {
+            let splitId = entr.entryCode.split("-");
+            if (parseInt(splitId[2]) >= parseInt(fromId)) {
+              const newNum = parseInt(splitId[2]) + 1;
+              entr.entryCode =
+                splitId[0] + "-" + splitId[1] + "-" + newNum.toString();
+            }
+          }
+          return entr;
+        })
+      );
+    };
+
+    const getNewBetweenEntryCount = (idBelow: string) => {
+      let newEntryCode;
+      let beforeEntryCode = getEntryCode(entries, idBelow);
+      let idSplits = beforeEntryCode.split("-");
+      if (lastEntry) {
+        newEntryCode =
+          entries.filter((entry) => entry.sectionId === sectionId).length + 1;
+      } else {
+        setNewEntryCodes(sectionId, idSplits[2]);
+        newEntryCode = idSplits[2];
+      }
+      return newEntryCode;
+    };
+
+    const newEntryCount: string | number = entryBelowId
+      ? getNewBetweenEntryCount(entryBelowId)
+      : entries.filter((entry) => entry.sectionId === sectionId).length + 1;
 
     const newEvidenceIds = getEvidenceIds(evidences);
 
@@ -138,7 +173,16 @@ export const NewEntry: React.FC<NewEntryProps> = ({
     //   setEntries((prevEntries) => [...prevEntries, entry]);
     // }
 
-    setEntries((prevEntries) => [...prevEntries, entry]);
+    if (!lastEntry) {
+      setEntries((prevEntries) => {
+        const newSplit = [...prevEntries];
+        const newInsertIndex = newSplit.findIndex((e) => e.id === entryBelowId);
+        newSplit.splice(newInsertIndex, 0, entry);
+        return newSplit;
+      });
+    } else {
+      setEntries((prevEntries) => [...prevEntries, entry]);
+    }
     // END OF TODO
 
     setIndividualEntrySorting((prevEntrySorting) => {
