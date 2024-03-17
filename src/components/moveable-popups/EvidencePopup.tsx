@@ -21,6 +21,7 @@ import { getTheme } from "../../themes/getTheme";
 import { useEvidence } from "../../contexts/EvidenceContext";
 import { useOnDrag } from "../../hooks/use-on-drag";
 import { ImageViewerPopup } from "../entry/ImageViewerPopup";
+import { toast } from "react-toastify";
 
 interface EvidencesPopupProps {
   entryId?: string;
@@ -336,9 +337,20 @@ export const EvidencesPopup: React.FC<EvidencesPopupProps> = ({
     evidenceToEdit: IEvidence
   ) => {
     const { value } = e.target;
-    evidenceToEdit.attachmentId = value;
-    if (evidenceToEdit.role === UserRole.Plaintiff) {
+    if (
+      evidenceList.some(
+        (evidence) => evidence.hasAttachment && evidence.attachmentId === value
+      ) ||
+      currentEvidenceList.some(
+        (evidence) => evidence.hasAttachment && evidence.attachmentId === value
+      )
+    ) {
+      toast(
+        `Es existiert bereits ein Beweis mit dieser Anlagennummerierung: ${value}`,
+        { autoClose: 7000, type: "warning" }
+      );
     }
+    evidenceToEdit.attachmentId = value;
     updateCurrEvidenceList(evidenceToEdit);
   };
 
