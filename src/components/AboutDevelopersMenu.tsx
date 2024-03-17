@@ -19,7 +19,7 @@ const studentData2021 = [
     names: "Sebastian Hahn, Isabell Röhr, Marie Sautmann",
   },
   {
-    group: "Enticklungsteam Anwält:innen",
+    group: "Entwicklungsteam Anwält:innen",
     names: "Sabrina Freisleben, Sebastian Schwarz, Tobias Zels",
   },
 ];
@@ -72,11 +72,27 @@ const developerData2023 = [
   },
 ];
 
+const developerData2024 = [
+  {
+    name: "Martina Emmert",
+    email: "Martina.Emmert@student.ur.de",
+    githubUrl: "https://github.com/tina-e",
+    githubImgUrl: "https://avatars.githubusercontent.com/u/53038141?v=4",
+  },
+  {
+    name: "Julia Sageder",
+    email: "Julia.Sageder@informatik.uni-regensburg.de",
+    githubUrl: "https://github.com/JuliaSageder",
+    githubImgUrl: "https://avatars.githubusercontent.com/u/126691623?v=4",
+  },
+];
+
 export const AboutDevelopersMenu = () => {
   const [showDevelopersMenu, setShowDevelopersMenu] = useState<boolean>(false);
   const [showStudents2021, setShowStudents2021] = useState<boolean>(false);
   const [showDevelopers2022, setShowDevelopers2022] = useState<boolean>(false);
   const [showDevelopers2023, setShowDevelopers2023] = useState<boolean>(false);
+  const [showDevelopers2024, setShowDevelopers2024] = useState<boolean>(false);
   const { setShowPatchnotesPopup } = usePatchnotes();
   const { setShowImprintPopup } = useImprint();
   const { isOnboardingVisible, setIsOnboardingVisible } = useOnboarding();
@@ -163,7 +179,7 @@ export const AboutDevelopersMenu = () => {
             <a
               target="_blank"
               rel="noreferrer"
-              href="https://www.uni-regensburg.de/forschung/reallabor-informationen/informationen-reallabor/informationen-reallabor/index.html">
+              href="https://www.uni-regensburg.de/forschung/reallabor-parteivortrag-im-zivilprozess/startseite/index.html">
               www.parteivortrag.de
             </a>
           </p>
@@ -267,6 +283,59 @@ export const AboutDevelopersMenu = () => {
           {showDevelopers2023 && (
             <div className="grid md:grid-cols-2 grid-cols-1 gap-2 mt-2">
               {developerData2023.map((developer, key) => (
+                <div
+                  className="flex flex-row items-center gap-4 p-4 rounded-md"
+                  key={key}>
+                  <img
+                    className="rounded-full w-14 h-14"
+                    src={developer.githubImgUrl}
+                    alt={"Bild von " + developer.name}
+                  />
+                  <div className="flex flex-col gap-2">
+                    <div className="flex flex-row gap-2">
+                      <span className="font-bold text-base">
+                        {developer.name}
+                      </span>
+                      <div
+                        className="flex flex-row items-center gap-1 p-1 rounded-md bg-darkGrey hover:bg-mediumGrey cursor-pointer"
+                        onClick={() =>
+                          window.open(developer.githubUrl, "_blank")
+                        }>
+                        <AiFillGithub size={14} color={"white"} />
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex flex-row items-center gap-1 p-1 rounded-md bg-gradient-to-r from-lightPetrol to-lightPurple hover:from-lightPetrol/50 hover:to-lightPurple/50 cursor-pointer">
+                        <Envelope className="text-darkGrey" size={14} />
+                        <span
+                          className="text-mediumGrey font-bold text-xs"
+                          onClick={() =>
+                            window.open("mailto:" + developer.email)
+                          }>
+                          {developer.email}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          <div
+            className="flex flex-row items-center gap-1 rounded-md cursor-pointer mt-4"
+            onClick={() => {
+              setShowDevelopers2024(!showDevelopers2024);
+            }}>
+            <h2 className="text-md font-bold">Softwareentwickler:innen 2024</h2>
+            {showDevelopers2024 ? (
+              <CaretUp size={12} className="text-darkGrey" weight="bold" />
+            ) : (
+              <CaretDown size={12} className="text-darkGrey" weight="bold" />
+            )}
+          </div>
+          {showDevelopers2024 && (
+            <div className="grid md:grid-cols-2 grid-cols-1 gap-2 mt-2">
+              {developerData2024.map((developer, key) => (
                 <div
                   className="flex flex-row items-center gap-4 p-4 rounded-md"
                   key={key}>

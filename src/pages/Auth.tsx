@@ -49,8 +49,6 @@ interface AuthProps {
   setIsAuthenticated: (isAuthenticated: boolean) => void;
 }
 
-//TODO: Evidences richtig zuordnen!!!!!
-
 export const Auth: React.FC<AuthProps> = ({ setIsAuthenticated }) => {
   // States for the form
   const [usage, setUsage] = useState<IStateUserInput["usage"]>();
