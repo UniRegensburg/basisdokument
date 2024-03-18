@@ -85,15 +85,15 @@ export const EntryList: React.FC<EntryListProps> = ({
                 )
                 .map((plaintiffEntry) => (
                   <React.Fragment key={plaintiffEntry.id}>
-                    {user?.role === UserRole.Plaintiff ||
-                      (user?.role === UserRole.Judge && (
-                        <AddEntryButtons
-                          sectionId={plaintiffEntry.sectionId}
-                          entryBelowId={plaintiffEntry.id}
-                          lastEntry={false}
-                          userRole={UserRole.Plaintiff}
-                        />
-                      ))}
+                    {(user?.role === UserRole.Plaintiff ||
+                      user?.role === UserRole.Judge) && (
+                      <AddEntryButtons
+                        sectionId={plaintiffEntry.sectionId}
+                        entryBelowId={plaintiffEntry.id}
+                        lastEntry={false}
+                        userRole={UserRole.Plaintiff}
+                      />
+                    )}
                     <Entry
                       key={plaintiffEntry.id}
                       entry={plaintiffEntry}
@@ -111,15 +111,15 @@ export const EntryList: React.FC<EntryListProps> = ({
                     />
                   </React.Fragment>
                 ))}
-              {user?.role === UserRole.Plaintiff ||
-                (user?.role === UserRole.Judge && (
-                  <AddEntryButtons
-                    sectionId={sectionId}
-                    entryBelowId={undefined}
-                    lastEntry={true}
-                    userRole={UserRole.Plaintiff}
-                  />
-                ))}
+              {(user?.role === UserRole.Plaintiff ||
+                user?.role === UserRole.Judge) && (
+                <AddEntryButtons
+                  sectionId={sectionId}
+                  entryBelowId={undefined}
+                  lastEntry={false}
+                  userRole={UserRole.Plaintiff}
+                />
+              )}
             </div>
             <div className="flex flex-col w-1/2 gap-5">
               {entries
@@ -130,17 +130,17 @@ export const EntryList: React.FC<EntryListProps> = ({
                 )
                 .map((defendantEntry) => (
                   <React.Fragment key={defendantEntry.id}>
-                    {user?.role === UserRole.Defendant ||
-                      (user?.role === UserRole.Judge && (
-                        <div className="pl-3">
-                          <AddEntryButtons
-                            sectionId={defendantEntry.sectionId}
-                            entryBelowId={defendantEntry.id}
-                            lastEntry={false}
-                            userRole={UserRole.Defendant}
-                          />
-                        </div>
-                      ))}
+                    {(user?.role === UserRole.Defendant ||
+                      user?.role === UserRole.Judge) && (
+                      <div className="pl-3">
+                        <AddEntryButtons
+                          sectionId={defendantEntry.sectionId}
+                          entryBelowId={defendantEntry.id}
+                          lastEntry={false}
+                          userRole={UserRole.Defendant}
+                        />
+                      </div>
+                    )}
                     <Entry
                       key={defendantEntry.id}
                       entry={defendantEntry}
@@ -158,17 +158,17 @@ export const EntryList: React.FC<EntryListProps> = ({
                     />
                   </React.Fragment>
                 ))}
-              {user?.role === UserRole.Defendant ||
-                (user?.role === UserRole.Judge && (
-                  <div className="pl-3">
-                    <AddEntryButtons
-                      sectionId={sectionId}
-                      entryBelowId={undefined}
-                      lastEntry={true}
-                      userRole={UserRole.Defendant}
-                    />
-                  </div>
-                ))}
+              {(user?.role === UserRole.Defendant ||
+                user?.role === UserRole.Judge) && (
+                <div className="pl-3">
+                  <AddEntryButtons
+                    sectionId={sectionId}
+                    entryBelowId={undefined}
+                    lastEntry={true}
+                    userRole={UserRole.Defendant}
+                  />
+                </div>
+              )}
             </div>
           </div>
 
