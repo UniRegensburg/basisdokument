@@ -11,42 +11,29 @@ const sliderItems = [
     src: "images/BDWelcome.png",
     alt: "Main screen to show the main functions",
     title: "Willkommen zum Basisdokument!",
-    desc: "Das Basisdokument unterstützt die Digitalisierung ziviler Gerichtsverfahren. In dieser kurzen Einführung werden Ihnen die Funktionen des Basisdokuments erläutert.<br><br>Eine Übersicht zu allen Funktionen finden Sie im <a href='https://www.uni-regensburg.de/forschung/reallabor-informationen/wiki/index.html' target='_blank'>Basisdokument Wiki</a>",
+    desc: "Das Basisdokument unterstützt die Digitalisierung ziviler Gerichtsverfahren. In dieser kurzen Einführung werden Ihnen die Funktionen des Basisdokuments erläutert. Auf den nächsten Seiten finden Sie zuerst Informationen zu den Funktionen, die in dieser Version der Anwendung neu sind. Danach sind die Grundfunktionalitäten der Anwendung dargestellt.<br><br>Eine Übersicht zu allen Funktionen und detaillierte Anleitungen finden Sie im <a href='https://www.uni-regensburg.de/forschung/reallabor-informationen/wiki/index.html' target='_blank'>Basisdokument-Wiki</a>.",
   },
   {
-    src: "videos/BDpdftiff.mp4",
-    title: "NEU: PDF/TIFF-Dateien zu Beweisen hinzufügen",
-    desc: "Sie können nun <b>PDF- und TIFF-Dateien</b> zu Beweisen hinzufügen. Über eine Anzeige sehen Sie auf einen Blick, <b>wie viele Dateien sie noch zum Basisdokument hinzufügen können</b>.<br>Nutzen Sie zur Verwaltung auch die <b>Beweise-Sidebar</b>.<br><br>Für mehr Infos zu neuen Funktionen, besuchen Sie bitte das <a href='https://www.uni-regensburg.de/forschung/reallabor-informationen/wiki/index.html' target='_blank'>Basisdokument Wiki</a>",
+    src: "videos/BDBeiträgeVorZwischen.mp4",
+    title: "NEU: Neue Beiträge vor und zwischen anderen einfügen",
+    desc: "Sie können neue Beiträge nun auch vor und zwischen bestehenden Beiträgen einfügen.<br><br>Eine Übersicht zu allen Funktionen finden Sie im <a href='https://www.uni-regensburg.de/forschung/reallabor-informationen/wiki/index.html' target='_blank'>Basisdokument-Wiki</a>.",
   },
   {
-    src: "videos/BDuVgdB.mp4",
-    title: "NEU: Beweise 'unter Verwahrung gegen die Beweislast'",
-    desc: "<b>Beweise der Gegenpartei</b> können nun <b>'unter Verwahrung gegen die Beweislast'</b> hinzugefügt werden.<br><br>Für mehr Infos zu neuen Funktionen, besuchen Sie bitte das <a href='https://www.uni-regensburg.de/forschung/reallabor-informationen/wiki/index.html' target='_blank'>Basisdokument Wiki</a>",
+    src: "videos/BDAnlageRubrum.mp4",
+    title: "NEU: Anlage für das Rubrum",
+    desc: "Sie können nun auch zum Rubrum Anlagen hinzufügen.<br><br>Eine Übersicht zu allen Funktionen finden Sie im <a href='https://www.uni-regensburg.de/forschung/reallabor-informationen/wiki/index.html' target='_blank'>Basisdokument-Wiki</a>.",
   },
   {
-    src: "videos/BDBeweiseFiltern.mp4",
-    title: "NEU: Beweise filtern",
-    desc: "Sie können nun <b>Beweise</b> in der <b>Beweise-Sidebar filtern</b>. Folgende Filter stehen zur Verfügung: <b>Beweise mit Anlage</b>, <b>Beweise mit PDF/TIFF</b>, <b>Beweise mit externer Anlage</b> und <b>Beweise ohne Anlage</b>.<br><br>Für mehr Infos zu neuen Funktionen, besuchen Sie bitte das <a href='https://www.uni-regensburg.de/forschung/reallabor-informationen/wiki/index.html' target='_blank'>Basisdokument Wiki</a>",
+    src: "videos/BDBezugnahmeZitat.mp4",
+    title: "NEU: Bezugnahme durch 'Zitieren'",
+    desc: "Sie können nun auch auf Ausschnitte eines Beitrags Bezug nehmen. Dieser Ausschnitt wird dann in Ihrem Beitrag 'zitiert'.<br><br>Eine Übersicht zu allen Funktionen finden Sie im <a href='https://www.uni-regensburg.de/forschung/reallabor-informationen/wiki/index.html' target='_blank'>Basisdokument-Wiki</a>.",
   },
+
+  // Aufbau / Anleitung
   {
-    src: "videos/BDBeiträgeGliederung.mp4",
-    title: "NEU: Beiträge in der Gliederungs-Sidebar",
-    desc: "Die <b>Gliederungs-Sidebar</b> wurde um die Anzeige der Beiträge erweitert. Per <b>Klick auf einen Beitrag</b> in der Gliederungs-Sidebar gelangen Sie sofort an die entsprechende Stelle im Dokument.<br><br>Für mehr Infos zu neuen Funktionen, besuchen Sie bitte das <a href='https://www.uni-regensburg.de/forschung/reallabor-informationen/wiki/index.html' target='_blank'>Basisdokument Wiki</a>",
-  },
-  {
-    src: "videos/BDErweiterteSignatur.mp4",
-    title: "NEU: Neue Optionen im Export-Dialog",
-    desc: "Im <b>Export-Dialog</b> stehen neue Funktionen zur Verfügung: Eine <b>erweiterte Signatur für Richter:innen</b>, das Herunterladen einer extra <b>PDF mit allen Beweisen des Basisdokuments</b> und dem optionalen <b>Herunterladen aller im Basisdokument gespeicherten Anlagen</b>.<br><br>Für mehr Infos zu neuen Funktionen, besuchen Sie bitte das <a href='https://www.uni-regensburg.de/forschung/reallabor-informationen/wiki/index.html' target='_blank'>Basisdokument Wiki</a>",
-  },
-  {
-    src: "videos/BDBeweise.mp4",
-    title: "Beweise in Beiträgen + Beweise-Sidebar",
-    desc: "Sie können <b>Beweise</b> in einem eigenen Bereich zu Beiträgen hinzufügen. Diese werden im Dokument übergreifend verwaltet. Nutzen Sie dafür die <b>Beweise-Sidebar</b>.",
-  },
-  {
-    src: "videos/BDExportDialog.mp4",
-    title: "Erweiterte Funktionen im Export Dialog",
-    desc: "Der <b>Export-Dialog</b> bietet Ihnen mehrere Optionen für das Herunterladen des Basisdokuments. Optional können Sie ein <b>individuelles Deckblatt</b> oder einen <b>Betreff</b> hinzufügen, eine <b>geänderte Signatur</b> integrieren oder <b>alle neuen Beiträge gesondert herunterladen</b>.",
+    src: "videos/Öffnen.mp4",
+    title: "Basisdokument anlegen",
+    desc: "Zu Beginn können Sie wählen, ob Sie ein <b>neues Basisdokument erstellen</b> oder ein bereits <b>vorhandenes Basisdokument öffnen</b> wollen. Zusätzlich können private Ergänzungen und Notizen geladen & gespeichert werden. Beide Dateien werden mit der Endung .txt gespeichert. Sie geben außerdem an, ob Sie an einer <b>Version</b> des Basisdokuments weiterarbeiten wollen oder ob eine neue Version erstellt werden soll.",
   },
   {
     src: "videos/BDMandanten-Domain.mp4",
@@ -54,94 +41,77 @@ const sliderItems = [
     desc: "Unter der <b>Mandanten-Domain</b> kann das Basisdokument schnell und unkompliziert eingesehen werden. Die Seite ist dazu gedacht, externen Personen die Einsicht in Basisdokumente zu erleichtern. In der Mandantenansicht gibt es <b>keine Bearbeitungsmöglichkeiten</b>.",
   },
   {
-    src: "videos/BDGliederungs-Sidebar.mp4",
-    title: "Gliederungs-Sidebar",
-    desc: "Die <b>Gliederungs-Sidebar</b> gewährt einen besseren Überblick und eine schnellere Navigation im Basisdokument. Per Klick auf einen Gliederungspunkt gelangen Sie sofort an die entsprechende Stelle im Dokument. Hier finden Sie die <b>Sortierungsfunktionen 'Original' und 'Privat'</b>.",
+    src: "videos/Darstellungen.mp4",
+    title: "Basisdokument: Fall anlegen & Ansicht",
+    desc: "Beim initialen Anlegen eines Falls können Sie <b>Rubren</b> Ihrer Mandant:innen eintragen. Diese werden in <b>zwei gegenüberliegenden Spalten</b> dargestellt - zur optimalen Übersicht finden Sie die Beiträge der <b>Klagepartei</b> stets in der linken, die der <b>Beklagtenpartei</b> stets in der rechten Spalte. Wenn Sie jedoch eine Zeilen- oder Spaltenansicht der Beiträge präferieren, können Sie ganz einfach wechseln. Keine Sorge, auch hier können Sie dank der Farbgebung eindeutig erkennen, welche Beiträge von welcher Partei verfasst wurden.",
   },
+  // Gliederung / Beiträge
+  {
+    src: "videos/GliederungBeitragErstellen.mp4",
+    title: "Basisdokument: Beiträge hinzufügen",
+    desc: "Auf der Hauptseite der Anwendung können Sie <b>neue Gliederungspunkte erstellen</b> und über den Button 'Beitrag hinzufügen' einen <b>neuen Beitrag hinzufügen</b> - äquivalent zum Erstellen eines neuen Abschnitts, wie Sie es von Ihrem Texteditor kennen. Beiträge werden immer zu Gliederungspunkten hinzugefügt. Das Vergeben eines Titel für einen Gliederungspunkt ist dabei optional und kann von beiden Parteien einzeln vorgenommen werden. Die Gliederungspunkte und ihre Beiträge werden auch rechts in der <b>Sidebar</b> dargestellt.",
+  },
+  // Bezug
+  {
+    src: "videos/Bezugnahme.mp4",
+    title: "Basisdokument: Fall bearbeiten & Argumente hinzufügen",
+    desc: "Als Parteivertreter:in können Sie, um auf einen Beitrag der Gegenseite einzugehen und die Sicht Ihrer Mandant:innen darzustellen, im jeweiligen Abschnitt einen eigenen Beitrag über <b>'auf diesen Beitrag Bezug nehmen'</b> hinzufügen. Bezüge auf Beiträge können Sie am jeweiligen Beitrag erkennen. Mit einem Klick können Sie <b>zwei bezugnehmende Beiträge nebeneinander anzeigen lassen</b>: Klicken Sie dazu auf das Symbol rechts in der Bezugleiste - die beiden Beiträge werden dann in einem eigenen Popup angezeigt.",
+  },
+  // Beweise
+  {
+    src: "videos/BeweisErstellen.mp4",
+    title: "Beweise in Beiträgen + Beweise-Sidebar",
+    desc: "Sie können <b>Beweise</b> in einem eigenen Bereich zu Beiträgen hinzufügen, optional als Anlage, als PDF- oder TIFF-Datei und 'unter Verwahrung gegen die Beweislast'. Diese werden im Dokument übergreifend verwaltet. Nutzen Sie dafür die <b>Beweise-Sidebar</b>. Sie können Beweise in der Beweise-Sidebar <b>filtern</b>. Folgende Filter stehen zur Verfügung: Beweise mit Anlage, Beweise mit PDF/TIFF, Beweise mit externer Anlage und Beweise ohne Anlage.",
+  },
+  // Hinweise
+  {
+    src: "videos/Hinweise.mp4",
+    title: "Hinweise der Richter:innen nach §139 ZPO",
+    desc: "Richter:innen können <b>Hinweise an die beiden Parteien</b> verfassen. Ein Hinweis der Richter:innen kann sich auf einen bestimmten Beitrag beziehen, muss das aber nicht. Hinweise sind auch in der <b>Sidebar</b> dargestellt, die zur Übersicht und Navigation nutzbar ist.",
+  },
+
+  // Sortierung / Gliederung
+  {
+    src: "videos/Gliederung.mp4",
+    title: "Gliederungs-Sidebar & individuelle Sortierung",
+    desc: "Die <b>Gliederungs-Sidebar</b> gewährt einen besseren Überblick und eine schnellere Navigation im Basisdokument. Per Klick auf einen Gliederungspunkt gelangen Sie sofort an die entsprechende Stelle im Dokument. In der Sidebar finden Sie auch die <b>Sortierungsfunktionen 'Original' und 'Privat'</b>. In der privaten Sortierung können Sie Gliederungspunkte Ihren Vorstellungen entsprechend sortieren. Diese private Sortierung wird für Sie in Ihrer Bearbeitungsdatei gespeichert.",
+  },
+
+  // Markierungen, Notizen, Lesezeichen
+  {
+    src: "videos/Markierung.mp4",
+    title: "Markierungen",
+    desc: "Wichtige Textstellen im Basisdokument können Sie anhand der <b>Markierfunktion</b> hervorheben. Dafür kann in der oberen Leiste das Werkzeug 'Markieren' sowie die Farbe hierfür ausgewählt werden. Diese Markierungen werden in Ihrer <b>privaten Bearbeitungsdatei</b> für Sie gespeichert. Das Basisdokument kann auch <b>nach Markierungen gefiltert</b> werden.",
+  },
+  {
+    src: "videos/Lesezeichen.mp4",
+    title: "Lesezeichen",
+    desc: "Zu Beiträgen im Basisdokument können <b>Lesezeichen</b> hinzugefügt werden, die nur für Sie gespeichert werden. In der <b>Sidebar</b> der Anwendung können Sie auf alle Lesezeichen zugreifen. Ein Klick auf die Beitrags-ID bringt Sie direkt zum Beitrag, zu dem das jeweilige Lesezeichen hinzugefügt wurde.",
+  },
+  {
+    src: "videos/Notiz.mp4",
+    title: "Notizen",
+    desc: "Das Basisdokument erlaubt das Anlegen <b>privater Notizen</b>, die nur für Sie gespeichert werden. Eine Notiz kann optional auch auf einen Beitrag verweisen. Auch hier ist es in der <b>Sidebar</b> möglich, durch einen Klick auf die Beitrags-ID zu dem Beitrag zu gelangen, auf den sich die Notiz bezieht.",
+  },
+
+  // Speichern/Export
+  {
+    src: "videos/Export.mp4",
+    title: "Speichern",
+    desc: "Sie können Ihre Version des Basisdokuments <b>lokal speichern</b>. Das ermöglicht Ihnen <b>über mehrere Sitzungen hinweg</b>, Beiträge hinzuzufügen, zu bearbeiten und löschen. Haben Sie die Bearbeitung Ihrer <b>Version abgeschlossen</b>, können Sie diese <b>exportieren und die Dateien versenden</b>. Zum Export stehen Ihnen verschiedene Optionen zur Verfügung: Sie könnendem Basisdokument-PDF ein eigenes Deckblatt oder einen Betreff hinzufügen, die Signatur im Basisdokument-PDF ändern, zusätzlich alle neuen Beiträge oder eine Liste aller Beweise als eigene PDF herunterladen, sowie die Anlagen vom Herunterladen ausschließen.<br>Eine detaillierte Anleitung zu einzelnen Export-Optionen finden Sie im <a href='https://www.uni-regensburg.de/forschung/reallabor-informationen/wiki/index.html' target='_blank'>Basisdokument-Wiki</a>.",
+  },
+
   {
     src: "images/BDPDF.png",
-    title: "Neuer PDF-Look",
-    desc: "Das PDF bietet zusätzlich zu einem neuen Look noch weitere Verbesserungen: Es wurden <b>Seitenzahlen</b> integriert, über eine <b>PDF-interne Gliederung</b> können Sie nun schneller im PDF navigieren. Zudem finden Sie auf eigenen <b>Übersichtsseiten</b> alle <b>neuen Beiträge</b> (diese werden zusätzlich in der Gesamtübersicht des Parteivortrags hervorgehoben) und <b>alle Hinweise</b>. Bezugnehmende Hinweise werden zusätzlich als <b>Kommentare</b> neben den entsprechenden Beiträgen angezeigt.",
+    title: "Das Basisdokument-PDF",
+    desc: "Das PDF enhält alle Inhalte des Basisdokuments. Zudem finden Sie auf eigenen <b>Übersichtsseiten</b> alle <b>neuen Beiträge</b> dieser Version (diese werden zusätzlich in der Gesamtübersicht des Parteivortrags hervorgehoben) und <b>alle Hinweise</b>. Bezugnehmende Hinweise werden zusätzlich als Kommentare neben den entsprechenden Beiträgen angezeigt.",
   },
-  {
-    src: "videos/BDBezugnehmendeBeiträgePopup.mp4",
-    title: "Beiträge-Ansicht",
-    desc: "Mit einem Klick können Sie <b>zwei bezugnehmende Beiträge nebeneinander anzeigen lassen</b>: Klicken Sie dazu auf das Symbol rechts in der Bezugleiste - die beiden Beiträge werden dann in einem eigenen Popup angezeigt.",
-  },
-  {
-    src: "videos/BDMandantenansicht.mp4",
-    title: "Mandantenansicht",
-    desc: "Um Personen Einsicht in das Basisdokument zu gewähren, können Sie die <b>Mandantenansicht</b> nutzen. Dazu müssen Sie nur den Hinweis auf <a href='https://app.parteivortrag.de' target='_blank'>app.parteivortrag.de</a> und die Basisdokument-txt versenden. In der Mandantenansicht gibt es <b>keine Bearbeitungsmöglichkeiten</b>.",
-  },
-  {
-    src: "videos/BDStandardüberschriften.mp4",
-    title: "Standardüberschriften für Gliederungspunkte",
-    desc: "Sie können schnell und unkompliziert <b>Standardüberschriften</b> im Basisdokument nutzen. Wenn Sie auf das Symbol am Ende der Zeile eines Gliederungspunktes klicken, öffnet sich ein Dropdown, aus dem Sie eine beliebige Überschrift auswählen können. Es ist natürlich immer möglich <b>individuelle Überschriften</b> zu vergeben.",
-  },
-  {
-    src: "videos/BDAnlegen.mp4",
-    title: "Basisdokument anlegen",
-    desc: "Zu Beginn können Sie wählen, ob Sie ein neues Basisdokument erstellen oder ein bereits vorhandenes Basisdokument öffnen wollen. Zusätzlich können private Ergänzungen und Notizen geladen & gespeichert werden. Dazu dient die sogenannte “Bearbeitungsdatei”, welche automatisch heruntergeladen wird, sobald Sie das Basisdokument herunterladen. Beide Dateien werden mit der Endung .txt gespeichert.",
-  },
-  {
-    src: "videos/BDMetadataThreading.mp4",
-    title: "Basisdokument: Fall anlegen & Ansicht",
-    desc: "Beim initialen Anlegen eines Falls können Sie Rubren Ihrer Mandant:innen eintragen. Diese werden in zwei gegenüberliegenden Spalten dargestellt - zur optimalen Übersicht finden Sie die Beiträge der Klagepartei stets in der linken, die der Beklagtenpartei stets in der rechten Spalte. Wenn Sie jedoch eine Zeilenansicht der Beiträge präferieren, können Sie ganz einfach wechseln. Keine Sorge, auch hier können Sie dank der Farbgebung eindeutig erkennen, welche Beiträge von welcher Partei verfasst wurden.",
-  },
-  {
-    src: "videos/BDBeitragGliederungspunkt.mp4",
-    title: "Basisdokument: Beiträge hinzufügen",
-    desc: "Auf der Hauptseite der Anwendung können Sie neue Gliederungspunkte erstellen und über den Button „Beitrag hinzufügen“ einen neuen Beitrag hinzufügen - äquivalent zum Erstellen eines neuen Abschnitts, wie Sie es von Ihrem Texteditor kennen. Beiträge werden immer zu Gliederungspunkten hinzugefügt. Das Vergeben eines Titel für einen Gliederungspunkt ist dabei optional und kann von allen Parteien eingesehen werden.",
-  },
-  {
-    src: "videos/BDBezugNehmen.mp4",
-    title: "Basisdokument: Fall bearbeiten & Argumente hinzufügen",
-    desc: "Als Vertreter:innen der Beklagten können Sie, um auf einen Beitrag der Gegenseite einzugehen und die Sicht Ihrer Mandant:innen darzustellen, im jeweiligen Abschnitt einen eigenen Beitrag über „auf diesen Beitrag Bezug nehmen“ hinzufügen. Bezüge auf Beiträge können Sie in der Zeilenansicht erkennen.",
-  },
-  {
-    src: "videos/BDSichtbarkeit.mp4",
-    title: "Sichtbarkeit von Beiträgen",
-    desc: "Beiträge, die Sie hinzufügen, können die Gegenseite und die Richter:innen erst sehen, wenn Sie das exportierte Basisdokument an diese übermittelt haben. Die Anwendung übermittelt keine Daten an einen externen Server. Wenn Sie am Basisdokument arbeiten und in mehreren Sitzungen Beiträge hinzufügen, sind diese nur für Sie sichtbar. Wie Sie Ihren aktuellen Stand für die nächste Sitzung abzuspeichern, erklären wir Ihnen auf der nächsten Seite.",
-  },
-  {
-    src: "videos/BDSpeichern.mp4",
-    title: "Speichern",
-    desc: "Sie können Ihre Version des Basisdokuments lokal speichern. Das ermöglicht Ihnen über mehrere Sitzungen hinweg, Beträge hinzuzufügen, zu bearbeiten und löschen. Öffnen Sie ein Basisdokument, an dem Sie weiterarbeiten möchten bzw. das noch nicht an die Gegenseite oder Richter:in übermittelt wurde, dann setzen Sie keinen Haken bei der Option einer neuen Version.",
-  },
-  {
-    src: "videos/BDVersion.mp4",
-    title: "Exportieren & Versenden",
-    desc: "Wenn Sie ein Basisdokument öffnen, das Sie von einer anderen Seite erhalten haben, setzen Sie umbedingt einen Haken bei der Option “Ich möchte eine neue Version auf Basis der hochgeladenen Version erstellen.” Haben Sie die Bearbeitung Ihrer Version abgeschlossen, können Sie diese Expotieren und die Datei mit der Endung .pdf versenden.",
-  },
-  {
-    src: "videos/BDSortierung.mp4",
-    title: "Sortierung ",
-    desc: "Gliederungspunkte können Sie anhand der Sortierfunktion in eine für Sie schlüssige Reihenfolge bringen, indem Sie über das Dropdown-Menü in der oberen Leiste die private Sortierung auswählen. Ihre eigens erstellte private Sortierung wird nur für Sie gespeichert.",
-  },
-  {
-    src: "videos/BDMarkierungen.mp4",
-    title: "Markierungen",
-    desc: "Wichtige Textstellen im Basisdokument können Sie anhand der Markierfunktion hervorheben. Dafür kann in der oberen Leiste das Werkzeug “Markieren” sowie die Farbe hierfür ausgewählt werden. Diese Markierungen werden nur für Sie gespeichert. Das Basisdokument kann auch nach Markierungen gefiltert werden.",
-  },
-  {
-    src: "videos/BDLesezeichen.mp4",
-    title: "Lesezeichen",
-    desc: "Zu Beiträgen im Basisdokument können Lesezeichen hinzugefügt werden, die nur für Sie gespeichert werden. In der Sidebar der Anwendung können Sie auf alle Lesezeichen zugreifen. Ein Klick auf die Beitrags-ID bringt Sie direkt zum Beitrag, zu dem das jeweilige Lesezeichen hinzugefügt wurde.",
-  },
-  {
-    src: "videos/BDNotizen.mp4",
-    title: "Notizen",
-    desc: "Das Basisdokument erlaubt das Anlegen privater Notizen, die nur für Sie gespeichert werden. Eine Notiz kann optional auch auf einen Beitrag verweisen. Auch hier ist es möglich, durch einen Klick auf die Beitrags-ID zu dem Beitrag zu gelangen, auf den sich die Notiz bezieht.",
-  },
-  {
-    src: "videos/BDHinweise.mp4",
-    title: "Hinweise der Richter:innen nach §139 ZPO",
-    desc: "Richter:innen können Hinweise an die beiden Parteien verfassen. Ähnlich wie bei den Notizen, ist es auch hier möglich, dass sich ein Hinweis der Richter:innen auf einen bestimmten Beitrag bezieht. Zusätzlich können Richter:innen Beiträge als „streitig“ und „unstreitig“ kennzeichnen. Dies kann über das farbliche Icon an den Beiträgen erkannt werden.",
-  },
+
+  // Ende
   {
     src: "videos/BDHelp.mp4",
     title: "Viel Erfolg bei der Bearbeitung Ihres Falles!",
-    desc: "Sollte Ihnen später etwas unklar sein, können Sie jederzeit über das Hilfe-Icon zu diesem Guide zurückkehren.",
+    desc: "Sollte Ihnen später etwas unklar sein, können Sie jederzeit über das Hilfe-Icon zu diesem Guide zurückkehren.<br><br>Eine Übersicht zu allen Funktionen und detaillierte Anleitungen finden Sie im <a href='https://www.uni-regensburg.de/forschung/reallabor-informationen/wiki/index.html' target='_blank'>Basisdokument-Wiki</a>.",
   },
 ];
 const SwiperButtonNext = () => {
