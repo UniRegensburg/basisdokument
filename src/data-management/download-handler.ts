@@ -339,15 +339,15 @@ async function downloadBasisdokumentAsPDF(
   }
   rubrumKlage = [parseHTMLtoString(metaPlaintiff)];
 
-  let metaAttachmentPlaintiff;
+  let metaAttachmentPlaintiff: any;
   if (obj["metaDataAttachmentPlaintiff"].length > 0) {
     if (obj["metaDataAttachmentPlaintiff"].length > 1) {
       metaAttachmentPlaintiff =
-        "Anhänge:\n" +
+        "Anlagen:\n" +
         getEvidenceNumeration(obj["metaDataAttachmentPlaintiff"]);
     } else {
       metaAttachmentPlaintiff =
-        "Anhang:\n" + getEvidenceNumeration(obj["metaDataAttachmentPlaintiff"]);
+        "Anlage:\n" + getEvidenceNumeration(obj["metaDataAttachmentPlaintiff"]);
     }
   }
 
@@ -360,15 +360,15 @@ async function downloadBasisdokumentAsPDF(
   }
   rubrumBeklagt = [parseHTMLtoString(metaDefendant)];
 
-  let metaAttachmentDefendant;
+  let metaAttachmentDefendant: any;
   if (obj["metaDataAttachmentDefendant"].length > 0) {
     if (obj["metaDataAttachmentDefendant"].length > 1) {
       metaAttachmentDefendant =
-        "Anhänge:\n" +
+        "Anlagen:\n" +
         getEvidenceNumeration(obj["metaDataAttachmentDefendant"]);
     } else {
       metaAttachmentDefendant =
-        "Anhang:\n" + getEvidenceNumeration(obj["metaDataAttachmentDefendant"]);
+        "Anlage:\n" + getEvidenceNumeration(obj["metaDataAttachmentDefendant"]);
     }
   }
 
@@ -988,6 +988,14 @@ async function downloadBasisdokumentAsPDF(
 
   autoTable(evDoc, {
     theme: "grid",
+    head: [["Rubrumsanlage Kläger"]],
+    body: [[metaAttachmentPlaintiff!]],
+    headStyles: { fillColor: [0, 122, 122] },
+  });
+  metaAttachmentPlaintiff = [];
+
+  autoTable(evDoc, {
+    theme: "grid",
     head: [["Beweisliste Kläger"]],
     headStyles: { fillColor: [0, 122, 122] },
   });
@@ -1008,6 +1016,14 @@ async function downloadBasisdokumentAsPDF(
     });
   }
   klageEvidences = [];
+
+  autoTable(evDoc, {
+    theme: "grid",
+    head: [["Rubrumsanlage Beklagter"]],
+    body: [[metaAttachmentDefendant!]],
+    headStyles: { fillColor: [0, 122, 122] },
+  });
+  metaAttachmentDefendant = [];
 
   autoTable(evDoc, {
     theme: "grid",
