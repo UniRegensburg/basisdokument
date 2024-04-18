@@ -4,33 +4,24 @@ import { useState } from "react";
 
 export const PatchnotesPopup = () => {
   const { setShowPatchnotesPopup } = usePatchnotes();
-  var [currentPatchnote, setCurrentPatchnote] = useState<string>("2.2.0");
+  var [currentPatchnote, setCurrentPatchnote] = useState<string>("2.3.0");
   var [patchnoteContent, setPatchnoteContent] = useState<string>(
-    `<h5 className="opacity-70">23. November 2023</h5>
-      <h3>Basisdokument Version 2.2.0</h3>
-      <div className="flex flex-col gap-2 mt-3">
-        <div>
-          <h4 className="font-semibold">Neue Funktionen:</h4>
-          <ul>
-          <li>PDF/TIFF-Dateien zu Beweisen hinzufügen</li>
-          <li>Fortschrittsanzeigen für das Dateivolumen der Anlagen</li>
-          <li>Beweise "unter Verwahrung gegen die Beweislast"</li>
-          <li>Beweise können in der Beweis-Sidebar gefiltert werden</li>
-          <li>Gliederungs-Sidebar erweitert um Beiträge</li>
-          <li>Neue Exportfunktionen: Erweiterte Signatur, Beweisliste</li>
-          <li>Hilfefunktion zusätzlich auf Startseite</li>
-          <li>Keine Aufzählung mehr bei einzelnen Beweisen</li>
-          <li>Darstellungs-Abständer angepasst</li>
-          </ul>
-        </div>
-        <div>
-          <h4 className="font-semibold">Funktionen in Arbeit:</h4>
-          <ul>
-          <li>Vorschau von TIFF-Dateien in allen Browsern</li>
-          <li>Übersichtliche Darstellung von bezugnehmenden Beiträgen</li>
-          </ul>
-        </div>
-      </div>`
+    `<h5 className="opacity-70">20. März 2024</h5>
+         <h3>Basisdokument Version 2.3.0</h3>
+         <div className="flex flex-col gap-2 mt-3">
+           <div>
+             <h4 className="font-semibold">Neue Funktionen:</h4>
+             <ul>
+              <li>Neue Beiträge zwischen, vor und nach bestehenden Beiträgen einfügen</li>
+              <li>Vollbild-Vorschau für PDF</li>
+              <li>Übersichtliche Darstellung mehrfacher Bezugnahme</li>
+              <li>Benachrichtigung bei Nutzung einer bereits existierenden Anlagennummer</li>
+              <li>Popups teils verschiebbar</li>
+              <li>Anhangsoption für das Rubrum</li>
+              <li>Bezugnahme auf einzelne Textausschnitte</li>
+             </ul>
+           </div>
+         </div>`
   );
 
   function switchPatchnoteContent(contentKey: string) {
@@ -174,7 +165,7 @@ export const PatchnotesPopup = () => {
                   <li>Neue Exportfunktionen: Erweiterte Signatur, Beweisliste</li>
                   <li>Hilfefunktion zusätzlich auf Startseite</li>
                   <li>Keine Aufzählung mehr bei einzelnen Beweisen</li>
-                  <li>Darstellungs-Abständer angepasst</li>
+                  <li>Darstellungs-Abstände angepasst</li>
                  </ul>
                </div>
                <div>
@@ -187,6 +178,27 @@ export const PatchnotesPopup = () => {
              </div>`
         );
         setCurrentPatchnote("2.2.0");
+        break;
+      case /2.3.0/.test(contentKey):
+        setPatchnoteContent(
+          `<h5 className="opacity-70">20. März 2024</h5>
+             <h3>Basisdokument Version 2.3.0</h3>
+             <div className="flex flex-col gap-2 mt-3">
+               <div>
+                 <h4 className="font-semibold">Neue Funktionen:</h4>
+                 <ul>
+                  <li>Neue Beiträge zwischen, vor und nach bestehenden Beiträgen einfügen</li>
+                  <li>Vollbild-Vorschau für PDF</li>
+                  <li>Übersichtliche Darstellung mehrfacher Bezugnahme</li>
+                  <li>Benachrichtigung bei Nutzung einer bereits existierenden Anlagennummer</li>
+                  <li>Popups sind verschiebbar</li>
+                  <li>Anhangsoption für das Rubrum</li>
+                  <li>Bezugnahme auf einzelne Textausschnitte</li>
+                 </ul>
+               </div>
+             </div>`
+        );
+        setCurrentPatchnote("2.3.0");
         break;
     }
   }
@@ -214,6 +226,20 @@ export const PatchnotesPopup = () => {
             <div className="flex flex-row border space-y-2 rounded-md overflow-y-auto">
               {/*tabs*/}
               <div className="flex flex-col">
+                <div
+                  className={`w-40 flex-grow h-full grid place-items-center p-2 border-b hover:bg-gray-200 cursor-pointer ${
+                    currentPatchnote === "2.3.0" ? "" : "border-r opacity-30"
+                  }`}
+                  onClick={() => {
+                    switchPatchnoteContent("2.3.0");
+                  }}>
+                  <div className="flex flex-col">
+                    <div className="font-semibold self-center">
+                      Version 2.3.0
+                    </div>
+                    <div className="opacity-75">20. März 2024</div>
+                  </div>
+                </div>
                 <div
                   className={`w-40 flex-grow h-full grid place-items-center p-2 border-b hover:bg-gray-200 cursor-pointer ${
                     currentPatchnote === "2.2.0" ? "" : "border-r opacity-30"

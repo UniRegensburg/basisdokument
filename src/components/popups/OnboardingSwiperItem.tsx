@@ -9,17 +9,19 @@ interface OnboardingSwiperItemProps {
 
 enum MediaType {
   IMAGE,
-  VIDEO
+  VIDEO,
 }
 
 export const OnboardingSliderItem = ({
   src,
   title,
   desc,
-  alt
+  alt,
 }: OnboardingSwiperItemProps) => {
-
-  const mediaType = src.split(".")[src.split(".").length - 1] === "png" ? MediaType.IMAGE : MediaType.VIDEO;
+  const mediaType =
+    src.split(".")[src.split(".").length - 1] === "png"
+      ? MediaType.IMAGE
+      : MediaType.VIDEO;
 
   return (
     <div>
@@ -33,9 +35,11 @@ export const OnboardingSliderItem = ({
             src={`${process.env.PUBLIC_URL}/${src}`}
           />
         ) : (
-          <img className="overflow-hidden w-full max-w-xl h-auto mx-auto"
+          <img
+            className="overflow-hidden w-full max-w-xl h-auto mx-auto"
             src={src}
-            alt={alt} />
+            alt={alt}
+          />
         )}
       </div>
       <div className="p-4 max-w-[800px] m-auto">
