@@ -36,9 +36,9 @@ export const Discussion = () => {
       <div className="bg-offWhite h-full overflow-y-scroll py-8 px-4 space-y-4 scroll-smooth">
         <div className="max-w-[1500px] m-auto">
           {highlightElementsWithSpecificVersion ? (
-            <div className="flex justify-center z-[30] relative">
-              <div className="fixed flex justify-center items-center -mt-24">
-                <div className="flex flex-row items-center justify-center gap-4 bg-blue-600 bg-opacity-80 text-white p-2 px-3 rounded-md">
+            <div className="flex justify-center items-center z-[30]">
+              <div className="fixed flex justify-center items-center">
+                <div className="flex flex-row items-center justify-center gap-4 bg-blue-600 text-white p-2 px-3 rounded-md">
                   <div>
                     <div className="w-4 h-4 border-blue-200 border-2 rounded-full"></div>
                   </div>
