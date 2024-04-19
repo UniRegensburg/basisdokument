@@ -5,6 +5,7 @@ import { Sorting, UserRole } from "../types";
 import { getOriginalSortingPosition } from "../util/get-original-sorting-position";
 import { getRequestedSorting } from "../util/get-requested-sorting";
 import { AddSection } from "./AddSection";
+import { AddEntryButtons } from "./AddEntryButtons";
 import { EntryList } from "./entry";
 import { JudgeDiscussion } from "./JudgeDiscussion";
 import { MetaData } from "./metadata/MetaData";
@@ -35,9 +36,9 @@ export const Discussion = () => {
       <div className="bg-offWhite h-full overflow-y-scroll py-8 px-4 space-y-4 scroll-smooth">
         <div className="max-w-[1500px] m-auto">
           {highlightElementsWithSpecificVersion ? (
-            <div className="flex justify-center z-[30] relative">
-              <div className="fixed flex justify-center items-center -mt-24">
-                <div className="flex flex-row items-center justify-center gap-4 bg-blue-600 bg-opacity-80 text-white p-2 px-3 rounded-md">
+            <div className="flex justify-center items-center z-[30]">
+              <div className="fixed flex justify-center items-center">
+                <div className="flex flex-row items-center justify-center gap-4 bg-blue-600 text-white p-2 px-3 rounded-md">
                   <div>
                     <div className="w-4 h-4 border-blue-200 border-2 rounded-full"></div>
                   </div>
@@ -112,6 +113,9 @@ export const Discussion = () => {
                           entriesList={sectionEntries?.parent || []}
                           sectionId={section.id}
                         />
+                        {user?.role !== UserRole.Client && (
+                          <AddEntryButtons sectionId={section.id} />
+                        )}
                       </div>
                     </div>
                   </div>

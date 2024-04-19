@@ -711,7 +711,7 @@ export const Entry: React.FC<EntryProps> = ({
                 sectionId={entry.sectionId}
                 associatedEntry={entry.id}
                 setIsNewEntryVisible={setIsNewEntryVisible}
-                entryBelowId={undefined}
+                // entryBelowId={undefined}
               />
             </div>
           )}
