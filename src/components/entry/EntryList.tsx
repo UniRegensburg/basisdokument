@@ -5,7 +5,9 @@ import { useUser } from "../../contexts/UserContext";
 import { useView } from "../../contexts/ViewContext";
 import { IEntry, UserRole, ViewMode } from "../../types";
 import { Entry, NewEntry } from "./";
-import { AddEntryButtons } from "../AddEntryButtons";
+// import { AddEntryButtons } from "../AddEntryButtons";
+
+// changes from PR#159 are disabled as not working properly (feat: add new entry between exisiting entries)
 
 interface EntryListProps {
   entriesList: IEntry[];
@@ -84,34 +86,50 @@ export const EntryList: React.FC<EntryListProps> = ({
                     entr.role === UserRole.Plaintiff
                 )
                 .map((plaintiffEntry) => (
-                  <React.Fragment key={plaintiffEntry.id}>
-                    {(user?.role === UserRole.Plaintiff ||
-                      user?.role === UserRole.Judge) && (
-                      <AddEntryButtons
-                        sectionId={plaintiffEntry.sectionId}
-                        entryBelowId={plaintiffEntry.id}
-                        lastEntry={false}
-                        userRole={UserRole.Plaintiff}
-                      />
-                    )}
-                    <Entry
-                      key={plaintiffEntry.id}
-                      entry={plaintiffEntry}
-                      isOld={plaintiffEntry.version < currentVersion}
-                      viewedBy={user!.role}
-                      isBookmarked={
-                        bookmarks.find(
-                          (bookmark) =>
-                            bookmark.associatedEntry === plaintiffEntry.id
-                        )
-                          ? true
-                          : false
-                      }
-                      setAssociatedEntryInProgress={showNewEntry}
-                    />
-                  </React.Fragment>
+                  // <React.Fragment key={plaintiffEntry.id}>
+                  //   {(user?.role === UserRole.Plaintiff ||
+                  //     user?.role === UserRole.Judge) && (
+                  //     <AddEntryButtons
+                  //       sectionId={plaintiffEntry.sectionId}
+                  //       entryBelowId={plaintiffEntry.id}
+                  //       lastEntry={false}
+                  //       userRole={UserRole.Plaintiff}
+                  //     />
+                  //   )}
+                  //   <Entry
+                  //     key={plaintiffEntry.id}
+                  //     entry={plaintiffEntry}
+                  //     isOld={plaintiffEntry.version < currentVersion}
+                  //     viewedBy={user!.role}
+                  //     isBookmarked={
+                  //       bookmarks.find(
+                  //         (bookmark) =>
+                  //           bookmark.associatedEntry === plaintiffEntry.id
+                  //       )
+                  //         ? true
+                  //         : false
+                  //     }
+                  //     setAssociatedEntryInProgress={showNewEntry}
+                  //   />
+                  // </React.Fragment>
+
+                  <Entry
+                    key={plaintiffEntry.id}
+                    entry={plaintiffEntry}
+                    isOld={plaintiffEntry.version < currentVersion}
+                    viewedBy={user!.role}
+                    isBookmarked={
+                      bookmarks.find(
+                        (bookmark) =>
+                          bookmark.associatedEntry === plaintiffEntry.id
+                      )
+                        ? true
+                        : false
+                    }
+                    setAssociatedEntryInProgress={showNewEntry}
+                  />
                 ))}
-              {(user?.role === UserRole.Plaintiff ||
+              {/* {(user?.role === UserRole.Plaintiff ||
                 user?.role === UserRole.Judge) && (
                 <AddEntryButtons
                   sectionId={sectionId}
@@ -119,7 +137,7 @@ export const EntryList: React.FC<EntryListProps> = ({
                   lastEntry={false}
                   userRole={UserRole.Plaintiff}
                 />
-              )}
+              )} */}
             </div>
             <div className="flex flex-col w-1/2 gap-5">
               {entries
@@ -129,36 +147,52 @@ export const EntryList: React.FC<EntryListProps> = ({
                     entr.role === UserRole.Defendant
                 )
                 .map((defendantEntry) => (
-                  <React.Fragment key={defendantEntry.id}>
-                    {(user?.role === UserRole.Defendant ||
-                      user?.role === UserRole.Judge) && (
-                      <div className="pl-3">
-                        <AddEntryButtons
-                          sectionId={defendantEntry.sectionId}
-                          entryBelowId={defendantEntry.id}
-                          lastEntry={false}
-                          userRole={UserRole.Defendant}
-                        />
-                      </div>
-                    )}
-                    <Entry
-                      key={defendantEntry.id}
-                      entry={defendantEntry}
-                      isOld={defendantEntry.version < currentVersion}
-                      viewedBy={user!.role}
-                      isBookmarked={
-                        bookmarks.find(
-                          (bookmark) =>
-                            bookmark.associatedEntry === defendantEntry.id
-                        )
-                          ? true
-                          : false
-                      }
-                      setAssociatedEntryInProgress={showNewEntry}
-                    />
-                  </React.Fragment>
+                  // <React.Fragment key={defendantEntry.id}>
+                  //   {(user?.role === UserRole.Defendant ||
+                  //     user?.role === UserRole.Judge) && (
+                  //     <div className="pl-3">
+                  //       <AddEntryButtons
+                  //         sectionId={defendantEntry.sectionId}
+                  //         entryBelowId={defendantEntry.id}
+                  //         lastEntry={false}
+                  //         userRole={UserRole.Defendant}
+                  //       />
+                  //     </div>
+                  //   )}
+                  //   <Entry
+                  //     key={defendantEntry.id}
+                  //     entry={defendantEntry}
+                  //     isOld={defendantEntry.version < currentVersion}
+                  //     viewedBy={user!.role}
+                  //     isBookmarked={
+                  //       bookmarks.find(
+                  //         (bookmark) =>
+                  //           bookmark.associatedEntry === defendantEntry.id
+                  //       )
+                  //         ? true
+                  //         : false
+                  //     }
+                  //     setAssociatedEntryInProgress={showNewEntry}
+                  //   />
+                  // </React.Fragment>
+
+                  <Entry
+                    key={defendantEntry.id}
+                    entry={defendantEntry}
+                    isOld={defendantEntry.version < currentVersion}
+                    viewedBy={user!.role}
+                    isBookmarked={
+                      bookmarks.find(
+                        (bookmark) =>
+                          bookmark.associatedEntry === defendantEntry.id
+                      )
+                        ? true
+                        : false
+                    }
+                    setAssociatedEntryInProgress={showNewEntry}
+                  />
                 ))}
-              {(user?.role === UserRole.Defendant ||
+              {/* {(user?.role === UserRole.Defendant ||
                 user?.role === UserRole.Judge) && (
                 <div className="pl-3">
                   <AddEntryButtons
@@ -168,7 +202,7 @@ export const EntryList: React.FC<EntryListProps> = ({
                     userRole={UserRole.Defendant}
                   />
                 </div>
-              )}
+              )} */}
             </div>
           </div>
 

@@ -5,6 +5,7 @@ import { Sorting, UserRole } from "../types";
 import { getOriginalSortingPosition } from "../util/get-original-sorting-position";
 import { getRequestedSorting } from "../util/get-requested-sorting";
 import { AddSection } from "./AddSection";
+import { AddEntryButtons } from "./AddEntryButtons";
 import { EntryList } from "./entry";
 import { JudgeDiscussion } from "./JudgeDiscussion";
 import { MetaData } from "./metadata/MetaData";
@@ -112,6 +113,9 @@ export const Discussion = () => {
                           entriesList={sectionEntries?.parent || []}
                           sectionId={section.id}
                         />
+                        {user?.role !== UserRole.Client && (
+                          <AddEntryButtons sectionId={section.id} />
+                        )}
                       </div>
                     </div>
                   </div>
