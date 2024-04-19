@@ -6,13 +6,12 @@ export const PatchnotesPopup = () => {
   const { setShowPatchnotesPopup } = usePatchnotes();
   var [currentPatchnote, setCurrentPatchnote] = useState<string>("2.3.0");
   var [patchnoteContent, setPatchnoteContent] = useState<string>(
-    `<h5 className="opacity-70">20. März 2024</h5>
+    `<h5 className="opacity-70">25. April 2024</h5>
          <h3>Basisdokument Version 2.3.0</h3>
          <div className="flex flex-col gap-2 mt-3">
            <div>
              <h4 className="font-semibold">Neue Funktionen:</h4>
              <ul>
-              <li>Neue Beiträge zwischen, vor und nach bestehenden Beiträgen einfügen</li>
               <li>Vollbild-Vorschau für PDF</li>
               <li>Übersichtliche Darstellung mehrfacher Bezugnahme</li>
               <li>Benachrichtigung bei Nutzung einer bereits existierenden Anlagennummer</li>
@@ -187,7 +186,6 @@ export const PatchnotesPopup = () => {
                <div>
                  <h4 className="font-semibold">Neue Funktionen:</h4>
                  <ul>
-                  <li>Neue Beiträge zwischen, vor und nach bestehenden Beiträgen einfügen</li>
                   <li>Vollbild-Vorschau für PDF</li>
                   <li>Übersichtliche Darstellung mehrfacher Bezugnahme</li>
                   <li>Benachrichtigung bei Nutzung einer bereits existierenden Anlagennummer</li>

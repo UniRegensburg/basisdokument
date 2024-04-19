@@ -13,11 +13,11 @@ const sliderItems = [
     title: "Willkommen zum Basisdokument!",
     desc: "Das Basisdokument unterstützt die Digitalisierung ziviler Gerichtsverfahren. In dieser kurzen Einführung werden Ihnen die Funktionen des Basisdokuments erläutert. Auf den nächsten Seiten finden Sie zuerst Informationen zu den Funktionen, die in dieser Version der Anwendung neu sind. Danach sind die Grundfunktionalitäten der Anwendung dargestellt.<br><br>Eine Übersicht zu allen Funktionen und detaillierte Anleitungen finden Sie im <a href='https://www.uni-regensburg.de/forschung/reallabor-informationen/wiki/index.html' target='_blank'>Basisdokument-Wiki</a>.",
   },
-  {
-    src: "videos/BDBeiträgeVorZwischen.mp4",
-    title: "NEU: Neue Beiträge vor und zwischen anderen einfügen",
-    desc: "Sie können neue Beiträge nun auch vor und zwischen bestehenden Beiträgen einfügen.<br><br>Eine Übersicht zu allen Funktionen finden Sie im <a href='https://www.uni-regensburg.de/forschung/reallabor-informationen/wiki/index.html' target='_blank'>Basisdokument-Wiki</a>.",
-  },
+  // {
+  //   src: "videos/BDBeiträgeVorZwischen.mp4",
+  //   title: "NEU: Neue Beiträge vor und zwischen anderen einfügen",
+  //   desc: "Sie können neue Beiträge nun auch vor und zwischen bestehenden Beiträgen einfügen.<br><br>Eine Übersicht zu allen Funktionen finden Sie im <a href='https://www.uni-regensburg.de/forschung/reallabor-informationen/wiki/index.html' target='_blank'>Basisdokument-Wiki</a>.",
+  // },
   {
     src: "videos/BDAnlageRubrum.mp4",
     title: "NEU: Anlage für das Rubrum",
