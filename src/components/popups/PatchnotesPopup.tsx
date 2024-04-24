@@ -180,7 +180,7 @@ export const PatchnotesPopup = () => {
         break;
       case /2.3.0/.test(contentKey):
         setPatchnoteContent(
-          `<h5 className="opacity-70">20. März 2024</h5>
+          `<h5 className="opacity-70">25. April 2024</h5>
              <h3>Basisdokument Version 2.3.0</h3>
              <div className="flex flex-col gap-2 mt-3">
                <div>
@@ -235,7 +235,7 @@ export const PatchnotesPopup = () => {
                     <div className="font-semibold self-center">
                       Version 2.3.0
                     </div>
-                    <div className="opacity-75">20. März 2024</div>
+                    <div className="opacity-75">25. April 2024</div>
                   </div>
                 </div>
                 <div

@@ -85,6 +85,12 @@ const developerData2024 = [
     githubUrl: "https://github.com/JuliaSageder",
     githubImgUrl: "https://avatars.githubusercontent.com/u/126691623?v=4",
   },
+  {
+    name: "Marie Sautmann",
+    email: "Marie.Sautmann@informatik.uni-regensburg.de",
+    githubUrl: "https://github.com/kindOfCurly",
+    githubImgUrl: "https://avatars.githubusercontent.com/u/40853256?v=4",
+  },
 ];
 
 export const AboutDevelopersMenu = () => {
@@ -181,6 +187,15 @@ export const AboutDevelopersMenu = () => {
               rel="noreferrer"
               href="https://www.uni-regensburg.de/forschung/reallabor-parteivortrag-im-zivilprozess/startseite/index.html">
               www.parteivortrag.de
+            </a>
+            <br />
+            <br />
+            Der Code für dieses Projekt ist auf github verfügbar unter:{" "}
+            <a
+              target="_blank"
+              rel="noreferrer"
+              href="https://github.com/UniRegensburg/basisdokument">
+              www.github.com/UniRegensburg/basisdokument
             </a>
           </p>
           <div
