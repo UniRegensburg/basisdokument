@@ -5,15 +5,17 @@ import htmlToDraft from "html-to-draftjs";
 import { FloppyDisk, ImageSquare, PencilSimple, X } from "phosphor-react";
 import { useEffect, useRef, useState } from "react";
 import { Editor } from "react-draft-wysiwyg";
-import { useCase, useHeaderContext } from "../../contexts";
+import { useCase, useEntries, useHeaderContext } from "../../contexts";
 import { useView } from "../../contexts/ViewContext";
 import { getTheme } from "../../themes/getTheme";
 import { IEvidence, ViewMode } from "../../types";
 import { Button } from "../Button";
 import { ExpandButton } from "./ExpandButton";
-import { EvidencesPopup } from "./EvidencePopup";
 import { ImageViewerPopup } from "./ImageViewerPopup";
 import { useEvidence } from "../../contexts/EvidenceContext";
+import { EntryPopup } from "../popups/EntryPopup";
+import { PopupContainer } from "../moveable-popups/PopupContainer";
+import { EvidencesPopup } from "../moveable-popups/EvidencePopup";
 
 const toolbarOptions = {
   options: ["blockType", "inline", "list", "textAlign"],
@@ -102,6 +104,7 @@ export const EntryForm: React.FC<EntryBodyProps> = ({
   const { selectedTheme } = useHeaderContext();
   const { view } = useView();
   const { entries } = useCase();
+  const { setEntryIdOpen, isEntryPopupOpen } = useEntries();
   const editorRef = useRef<Editor>(null);
   const suggestions = entries.map((entry) => ({
     text: entry.entryCode,
@@ -279,6 +282,7 @@ export const EntryForm: React.FC<EntryBodyProps> = ({
                 plaintiffFileVolumeToSave,
                 defendantFileVolumeToSave
               );
+              setEntryIdOpen(null);
             }}
             size="sm"
             bgColor="bg-lightGreen hover:bg-darkGreen"
@@ -287,26 +291,55 @@ export const EntryForm: React.FC<EntryBodyProps> = ({
           </Button>
         </div>
       </div>
-      <EvidencesPopup
-        entryId={entryId}
-        caveatOfProof={currCaveatOfProof}
-        setCaveatOfProof={setCaveatOfProof}
-        isVisible={evidencePopupVisible}
-        setIsVisible={setEvidencePopupVisible}
-        isPlaintiff={isPlaintiff}
-        evidences={evidencesToSave}
-        setEvidencesToSave={setEvidencesToSave}
-        setPlaintiffFileVolumeToSave={setPlaintiffFileVolumeToSave}
-        setDefendantFileVolumeToSave={
-          setDefendantFileVolumeToSave
-        }></EvidencesPopup>
-      <ImageViewerPopup
-        isVisible={imagePopupVisible}
-        filedata={imagePopupData}
-        filename={imagePopupFilename}
-        title={imagePopupTitle}
-        attachmentId={imagePopupAttachment}
-        setIsVisible={setImagePopupVisible}></ImageViewerPopup>
+      {evidencePopupVisible && (
+        <PopupContainer
+          title={"Beweisbereich"}
+          isVisible={evidencePopupVisible}
+          setIsVisible={setEvidencePopupVisible}
+          width={60}
+          height={75}
+          children={
+            <EvidencesPopup
+              entryId={entryId}
+              caveatOfProof={currCaveatOfProof}
+              setCaveatOfProof={setCaveatOfProof}
+              isVisible={evidencePopupVisible}
+              setIsVisible={setEvidencePopupVisible}
+              isPlaintiff={isPlaintiff}
+              evidences={evidencesToSave}
+              setEvidencesToSave={setEvidencesToSave}
+              setPlaintiffFileVolumeToSave={setPlaintiffFileVolumeToSave}
+              setDefendantFileVolumeToSave={
+                setDefendantFileVolumeToSave
+              }></EvidencesPopup>
+          }></PopupContainer>
+      )}
+      {imagePopupVisible && (
+        <ImageViewerPopup
+          isVisible={imagePopupVisible}
+          filedata={imagePopupData}
+          filename={imagePopupFilename}
+          title={imagePopupTitle}
+          attachmentId={imagePopupAttachment}
+          setIsVisible={setImagePopupVisible}></ImageViewerPopup>
+      )}
+      <EntryPopup
+        isVisible={isEntryPopupOpen}
+        saveCurrentEntry={() => {
+          const plainText = editorState.getCurrentContent().getPlainText();
+          const newHtml = draftToHtml(
+            convertToRaw(editorState.getCurrentContent())
+          );
+          onSave(
+            plainText,
+            newHtml,
+            evidencesToSave,
+            currCaveatOfProof,
+            plaintiffFileVolumeToSave,
+            defendantFileVolumeToSave
+          );
+        }}
+      />
     </>
   );
 };

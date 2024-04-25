@@ -1,12 +1,17 @@
 import cx from "classnames";
-import { ArrowBendDownRight, Pencil } from "phosphor-react";
+import { ArrowBendDownRight, PencilSimple } from "phosphor-react";
 import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
 import "react-draft-wysiwyg/dist/react-draft-wysiwyg.css";
 import { EditText } from "react-edit-text";
 import "react-edit-text/dist/index.css";
 import { toast } from "react-toastify";
 import { v4 as uuidv4 } from "uuid";
-import { useCase, useHeaderContext, useSection } from "../../contexts";
+import {
+  useCase,
+  useEntries,
+  useHeaderContext,
+  useSection,
+} from "../../contexts";
 import { useUser } from "../../contexts/UserContext";
 import { useView } from "../../contexts/ViewContext";
 import { getTheme } from "../../themes/getTheme";
@@ -20,7 +25,7 @@ import {
 import { getEntryCode } from "../../util/get-entry-code";
 import { getOriginalSortingPosition } from "../../util/get-original-sorting-position";
 import { Button } from "../Button";
-import { ErrorPopup } from "../ErrorPopup";
+import { ErrorPopup } from "../popups/ErrorPopup";
 import { Tooltip } from "../Tooltip";
 import { EntryForm } from "./EntryForm";
 import { EntryHeader } from "./EntryHeader";
@@ -33,6 +38,9 @@ interface NewEntryProps {
   sectionId: string;
   associatedEntry?: string;
   onClose?: (id: string) => void;
+  associatedSelection?: string;
+  // entryBelowId?: string;
+  // lastEntry?: boolean;
 }
 
 export const NewEntry: React.FC<NewEntryProps> = ({
@@ -41,6 +49,9 @@ export const NewEntry: React.FC<NewEntryProps> = ({
   sectionId,
   associatedEntry,
   onClose,
+  associatedSelection,
+  // entryBelowId,
+  // lastEntry,
 }) => {
   const { selectedTheme } = useHeaderContext();
   const [isExpanded, setIsExpanded] = useState<boolean>(true);
@@ -53,6 +64,7 @@ export const NewEntry: React.FC<NewEntryProps> = ({
   const { sectionList } = useSection();
   const { updateEvidenceList, setPlaintiffFileVolume, setDefendantFileVolume } =
     useEvidence();
+  const { setEntryIdOpen, checkAssociatedText } = useEntries();
 
   const isPlaintiff = roleForNewEntry === UserRole.Plaintiff;
   const entryCodePrefix = isPlaintiff ? "K" : "B";
@@ -62,12 +74,47 @@ export const NewEntry: React.FC<NewEntryProps> = ({
     plainText: string,
     rawHtml: string,
     evidences: IEvidence[],
-    caveatOfProof: boolean
+    caveatOfProof: boolean,
+    associatedSelection?: string
   ) => {
     if (plainText.length === 0) {
       toast("Bitte geben sie einen Text ein.", { type: "error" });
       return;
     }
+
+    // const setNewEntryCodes = (sectionId: string, fromId: string) => {
+    //   setEntries(
+    //     entries.map((entr) => {
+    //       if (sectionId === entr.sectionId) {
+    //         let splitId = entr.entryCode.split("-");
+    //         if (parseInt(splitId[2]) >= parseInt(fromId)) {
+    //           const newNum = parseInt(splitId[2]) + 1;
+    //           entr.entryCode =
+    //             splitId[0] + "-" + splitId[1] + "-" + newNum.toString();
+    //         }
+    //       }
+    //       return entr;
+    //     })
+    //   );
+    // };
+
+    // const getNewBetweenEntryCount = (idBelow: string) => {
+    //   let newEntryCode;
+    //   let beforeEntryCode = getEntryCode(entries, idBelow);
+    //   let idSplits = beforeEntryCode.split("-");
+    //   if (lastEntry) {
+    //     newEntryCode =
+    //       entries.filter((entry) => entry.sectionId === sectionId).length + 1;
+    //   } else {
+    //     setNewEntryCodes(sectionId, idSplits[2]);
+    //     newEntryCode = idSplits[2];
+    //   }
+    //   return newEntryCode;
+    // };
+
+    // const newEntryCount: string | number = entryBelowId
+    //   ? getNewBetweenEntryCount(entryBelowId)
+    //   : entries.filter((entry) => entry.sectionId === sectionId).length + 1;
 
     const newEntryCount =
       entries.filter((entry) => entry.sectionId === sectionId).length + 1;
@@ -90,6 +137,12 @@ export const NewEntry: React.FC<NewEntryProps> = ({
 
     if (associatedEntry) {
       entry.associatedEntry = associatedEntry;
+      if (
+        associatedSelection !== "" &&
+        checkAssociatedText(associatedSelection!, associatedEntry)
+      ) {
+        entry.associatedEntryText = associatedSelection;
+      }
     }
 
     const individualEntrySortingEntry: IndividualEntrySortingEntry = {
@@ -124,6 +177,16 @@ export const NewEntry: React.FC<NewEntryProps> = ({
     // }
 
     setEntries((prevEntries) => [...prevEntries, entry]);
+    // if (!lastEntry) {
+    //   setEntries((prevEntries) => {
+    //     const newSplit = [...prevEntries];
+    //     const newInsertIndex = newSplit.findIndex((e) => e.id === entryBelowId);
+    //     newSplit.splice(newInsertIndex, 0, entry);
+    //     return newSplit;
+    //   });
+    // } else {
+    //   setEntries((prevEntries) => [...prevEntries, entry]);
+    // }
     // END OF TODO
 
     setIndividualEntrySorting((prevEntrySorting) => {
@@ -134,6 +197,7 @@ export const NewEntry: React.FC<NewEntryProps> = ({
 
     setIsNewEntryVisible(false);
     setIsExpanded(false);
+    setEntryIdOpen(null);
     if (associatedEntry && onClose) onClose(associatedEntry);
   };
 
@@ -144,6 +208,7 @@ export const NewEntry: React.FC<NewEntryProps> = ({
     }
     setIsNewEntryVisible(false);
     setIsExpanded(false);
+    setEntryIdOpen(null);
     if (associatedEntry && onClose) onClose(associatedEntry);
   };
 
@@ -217,7 +282,7 @@ export const NewEntry: React.FC<NewEntryProps> = ({
               showEditButton
               editButtonContent={
                 <Tooltip asChild text="Name bearbeiten">
-                  <Pencil />
+                  <PencilSimple />
                 </Tooltip>
               }
               editButtonProps={{
@@ -225,6 +290,18 @@ export const NewEntry: React.FC<NewEntryProps> = ({
               }}
             />
           </EntryHeader>
+          {/* Associated Selection */}
+          {associatedSelection && (
+            <div
+              className={cx("p-3 border border-t-0 bg-white text-zinc-600", {
+                [`border-${getTheme(selectedTheme)?.secondaryPlaintiff}`]:
+                  isPlaintiff,
+                [`border-${getTheme(selectedTheme)?.secondaryDefendant}`]:
+                  !isPlaintiff,
+              })}>
+              {"\u00bb" + associatedSelection + "\u00ab"}
+            </div>
+          )}
           {/* Toolbar */}
           <EntryForm
             caveatOfProof={false}
@@ -235,6 +312,7 @@ export const NewEntry: React.FC<NewEntryProps> = ({
             }}
             onAbort={(plainText, rawHtml) => {
               closeNewEntryForm(plainText, rawHtml);
+              setEntryIdOpen(null);
             }}
             onSave={(
               plainText,
@@ -244,7 +322,13 @@ export const NewEntry: React.FC<NewEntryProps> = ({
               plaintiffFileVolume,
               defendantFileVolume
             ) => {
-              createEntry(plainText, rawHtml, evidences, caveatOfProof);
+              createEntry(
+                plainText,
+                rawHtml,
+                evidences,
+                caveatOfProof,
+                associatedSelection
+              );
               setPlaintiffFileVolume(plaintiffFileVolume);
               setDefendantFileVolume(defendantFileVolume);
             }}
@@ -273,6 +357,7 @@ export const NewEntry: React.FC<NewEntryProps> = ({
               onClick={() => {
                 setIsErrorVisible(false);
                 setIsNewEntryVisible(false);
+                setEntryIdOpen(null);
               }}>
               Verwerfen
             </Button>

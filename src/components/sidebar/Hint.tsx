@@ -9,7 +9,7 @@ import { getTheme } from "../../themes/getTheme";
 import { IHint, UserRole } from "../../types";
 import { getEntryCode } from "../../util/get-entry-code";
 import { Button } from "../Button";
-import { ErrorPopup } from "../ErrorPopup";
+import { ErrorPopup } from "../popups/ErrorPopup";
 
 export interface HintProps {
   hint: IHint;
@@ -102,9 +102,12 @@ export const Hint: React.FC<HintProps> = ({ hint }) => {
               <div className="font-bold">{hint.author}</div>
 
               {hint.version !== currentVersion ? (
-                <div className="opacity-40">{`${format(new Date(
-                  Date.parse(versionHistory[hint.version - 1].timestamp)
-                ), "dd.MM.yyyy")}`}</div>
+                <div className="opacity-40">{`${format(
+                  new Date(
+                    Date.parse(versionHistory[hint.version - 1].timestamp)
+                  ),
+                  "dd.MM.yyyy"
+                )}`}</div>
               ) : null}
             </div>
 

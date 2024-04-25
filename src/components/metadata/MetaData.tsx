@@ -1,21 +1,30 @@
 import cx from "classnames";
-import { CaretDown, CaretRight, PencilSimple, Plus } from "phosphor-react";
+import {
+  CaretDown,
+  CaretRight,
+  ImageSquare,
+  PencilSimple,
+  Plus,
+} from "phosphor-react";
 import { useState } from "react";
 import { toast } from "react-toastify";
 import { useCase, useHeaderContext, useUser } from "../../contexts";
 import { getTheme } from "../../themes/getTheme";
-import { UserRole } from "../../types";
+import { IEvidence, UserRole } from "../../types";
 import { Button } from "../Button";
-import { ErrorPopup } from "../ErrorPopup";
+import { ErrorPopup } from "../popups/ErrorPopup";
 import { Tooltip } from "../Tooltip";
 import { MetaDataBody } from "./MetaDataBody";
 import { MetaDataForm } from "./MetaDataForm";
+import { ImageViewerPopup } from "../entry/ImageViewerPopup";
+import { useEvidence } from "../../contexts/EvidenceContext";
 
 interface MetaDataProps {
   owner: UserRole;
+  attachments: IEvidence[];
 }
 
-export const MetaData: React.FC<MetaDataProps> = ({ owner }) => {
+export const MetaData: React.FC<MetaDataProps> = ({ owner, attachments }) => {
   const [isOpen, setIsOpen] = useState<boolean>(true);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [isErrorVisible, setIsErrorVisible] = useState<boolean>(false);
@@ -23,11 +32,23 @@ export const MetaData: React.FC<MetaDataProps> = ({ owner }) => {
   const { user } = useUser();
   const { metaData, setMetaData } = useCase();
   const { selectedTheme } = useHeaderContext();
+  const {
+    setPlaintiffFileVolume,
+    setDefendantFileVolume,
+    setPlaintiffAttachments,
+    setDefendantAttachments,
+  } = useEvidence();
 
   const isPlaintiff = owner === UserRole.Plaintiff;
   const isJudge = user?.role === UserRole.Judge;
   const canEdit = isJudge || user?.role === owner;
   const rubrumContent = isPlaintiff ? metaData?.plaintiff : metaData?.defendant;
+
+  const [imagePopupFilename, setImagePopupFilename] = useState<string>("");
+  const [imagePopupData, setImagePopupData] = useState<string>("");
+  const [imagePopupAttachment, setImagePopupAttachment] = useState<string>("");
+  const [imagePopupTitle, setImagePopupTitle] = useState<string>("");
+  const [imagePopupVisible, setImagePopupVisible] = useState<boolean>(false);
 
   const toggleMetaData = () => {
     setIsOpen(!isOpen);
@@ -39,7 +60,13 @@ export const MetaData: React.FC<MetaDataProps> = ({ owner }) => {
     setIsOpen(true);
   };
 
-  const updateRubrum = (plainText: string, rawHtml: string) => {
+  const updateRubrum = (
+    plainText: string,
+    rawHtml: string,
+    attachments: IEvidence[],
+    plaintiffVolume: number,
+    defendantVolume: number
+  ) => {
     if (plainText.length === 0) {
       toast("Bitte geben Sie einen Text ein.", { type: "error" });
       return;
@@ -54,7 +81,30 @@ export const MetaData: React.FC<MetaDataProps> = ({ owner }) => {
       }
       return newState;
     });
+
+    if (isPlaintiff) {
+      setPlaintiffAttachments(attachments);
+    } else {
+      setDefendantAttachments(attachments);
+    }
+
+    setPlaintiffFileVolume(plaintiffVolume);
+    setDefendantFileVolume(defendantVolume);
+
     setIsEditing(false);
+  };
+
+  const showImage = (
+    filedata: string,
+    filename: string,
+    attId: string,
+    title: string
+  ) => {
+    setImagePopupVisible(!imagePopupVisible);
+    setImagePopupData(filedata);
+    setImagePopupAttachment(attId);
+    setImagePopupFilename(filename);
+    setImagePopupTitle(title);
   };
 
   return (
@@ -93,9 +143,23 @@ export const MetaData: React.FC<MetaDataProps> = ({ owner }) => {
               onAbort={(plainText, rawHtml) => {
                 setIsErrorVisible(true);
               }}
-              onSave={(plainText, rawHtml) => {
-                updateRubrum(plainText, rawHtml);
+              onSave={(
+                plainText,
+                rawHtml,
+                attachments,
+                plaintiffVolume,
+                defendantVolume
+              ) => {
+                updateRubrum(
+                  plainText,
+                  rawHtml,
+                  attachments,
+                  plaintiffVolume,
+                  defendantVolume
+                );
               }}
+              attachments={attachments}
+              isPlaintiff={isPlaintiff}
             />
           ) : (
             <MetaDataBody isPlaintiff={isPlaintiff}>
@@ -142,6 +206,55 @@ export const MetaData: React.FC<MetaDataProps> = ({ owner }) => {
               )}
             </MetaDataBody>
           )}
+          {!isEditing && attachments && attachments.length > 0 && (
+            <div className="flex flex-col gap-1 border-t border-lightGrey p-2">
+              <span className="ml-1 font-bold">
+                {(attachments.length === 1 ? "Anlage" : "Anlagen") + ":"}
+              </span>
+              <div className="flex flex-col pl-2">
+                {attachments.map((attachment, index) => (
+                  <div className="flex flex-row items-center" key={index}>
+                    <div className="flex flex-row gap-2">
+                      {attachments.length !== 1 && (
+                        <span className="w-4">{index + 1 + "."}</span>
+                      )}
+                      {attachment.hasAttachment ? (
+                        <span className="break-words font-medium">
+                          {attachment.name}
+                          <b> als Anlage {attachment.attachmentId}</b>
+                        </span>
+                      ) : (
+                        <span className="break-words font-medium">
+                          {attachment.name}
+                        </span>
+                      )}
+                      {attachment.hasImageFile && (
+                        <ImageSquare
+                          size={20}
+                          className="text-mediumGrey hover:text-black"
+                          onClick={() => {
+                            showImage(
+                              attachment.imageFile!,
+                              attachment.imageFilename!,
+                              attachment.attachmentId!,
+                              attachment.name
+                            );
+                          }}
+                        />
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          <ImageViewerPopup
+            isVisible={imagePopupVisible}
+            filedata={imagePopupData}
+            filename={imagePopupFilename}
+            title={imagePopupTitle}
+            attachmentId={imagePopupAttachment}
+            setIsVisible={setImagePopupVisible}></ImageViewerPopup>
           <ErrorPopup isVisible={isErrorVisible}>
             <div className="flex flex-col items-center justify-center space-y-8">
               <p className="text-center text-base">

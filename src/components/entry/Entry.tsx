@@ -6,7 +6,7 @@ import {
   BookmarkSimple,
   DotsThree,
   Notepad,
-  Pencil,
+  PencilSimple,
   Scales,
   Trash,
   ArrowSquareOut,
@@ -21,6 +21,7 @@ import {
   useNotes,
   useHints,
   useUser,
+  useEntries,
 } from "../../contexts";
 import { useOutsideClick } from "../../hooks/use-outside-click";
 import {
@@ -34,7 +35,7 @@ import {
   IEvidence,
 } from "../../types";
 import { Button } from "../Button";
-import { ErrorPopup } from "../ErrorPopup";
+import { ErrorPopup } from "../popups/ErrorPopup";
 import { Tooltip } from "../Tooltip";
 import { EntryList } from "./EntryList";
 import { useBookmarks } from "../../contexts";
@@ -44,10 +45,11 @@ import { getTheme } from "../../themes/getTheme";
 import { getEntryCode } from "../../util/get-entry-code";
 import { useView } from "../../contexts/ViewContext";
 import { getBrowser } from "../../util/get-browser";
-import { AssociationsPopup } from "../AssociationsPopup";
 import { getEntryById } from "../../contexts/CaseContext";
 import { getEvidenceIds, getEvidences } from "../../util/get-evidences";
 import { useEvidence } from "../../contexts/EvidenceContext";
+import { PopupContainer } from "../moveable-popups/PopupContainer";
+import { AssociationsPopup } from "../moveable-popups/AssociationsPopup";
 
 interface EntryProps {
   entry: IEntry;
@@ -59,7 +61,8 @@ interface EntryProps {
   shownInPopup?: boolean;
   setAssociatedEntryInProgress?: (
     entry: IEntry,
-    setIsNewEntryVisible: React.Dispatch<SetStateAction<boolean>>
+    setIsNewEntryVisible: React.Dispatch<SetStateAction<boolean>>,
+    associatedEntryText: string
   ) => void;
 }
 
@@ -104,6 +107,7 @@ export const Entry: React.FC<EntryProps> = ({
     setPlaintiffFileVolume,
     setDefendantFileVolume,
   } = useEvidence();
+  const { setEntryIdOpen, associatedSelection } = useEntries();
 
   const versionTimestamp = versionHistory[entry.version - 1].timestamp;
 
@@ -118,6 +122,7 @@ export const Entry: React.FC<EntryProps> = ({
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
   const [isAssociationsPopupOpen, setIsAssociationsPopupOpen] =
     useState<boolean>(false);
+  const [associatedEntry, setAssociatedEntry] = useState<IEntry>();
   const [isNewEntryVisible, setIsNewEntryVisible] = useState<boolean>(false);
   const [isEditErrorVisible, setIsEditErrorVisible] = useState<boolean>(false);
   const [isDeleteErrorVisible, setIsDeleteErrorVisible] =
@@ -130,6 +135,8 @@ export const Entry: React.FC<EntryProps> = ({
   const { bookmarks, setBookmarks, deleteBookmarkByReference } = useBookmarks();
   const { setActiveSidebar } = useSidebar();
   const { user } = useUser();
+  const { entryIdOpen, setIsEntryPopupOpen, checkAssociatedText } =
+    useEntries();
 
   const isJudge = viewedBy === UserRole.Judge;
   const isPlaintiff = entry.role === UserRole.Plaintiff;
@@ -156,14 +163,25 @@ export const Entry: React.FC<EntryProps> = ({
   const createAssociatedEntryButton = useRef<HTMLAnchorElement | null>(null);
 
   const showNewEntry = () => {
+    if (entryIdOpen !== null) {
+      setIsEntryPopupOpen(true);
+      return;
+    }
     // TODO: check other browsers
     if (!getBrowser().includes("Firefox"))
       setTimeout(() => createAssociatedEntryButton.current?.click(), 1);
     if (view === ViewMode.SideBySide) {
-      setAssociatedEntryInProgress!(entry, setIsNewEntryVisible);
+      setAssociatedEntryInProgress!(
+        entry,
+        setIsNewEntryVisible,
+        checkAssociatedText(associatedSelection, entry.id)
+          ? associatedSelection
+          : ""
+      );
     } else {
       setIsNewEntryVisible(true);
     }
+    setEntryIdOpen("newEntry");
   };
 
   const bookmarkEntry = (e: React.MouseEvent) => {
@@ -214,7 +232,15 @@ export const Entry: React.FC<EntryProps> = ({
   };
 
   const editEntry = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (entryIdOpen !== null) {
+      setIsEntryPopupOpen(true);
+      setIsMenuOpen(false);
+      return;
+    }
     setIsEditing(!isEditing);
+    setIsMenuOpen(false);
+    setEntryIdOpen(entry.id);
     setIsBodyOpen(true);
   };
 
@@ -223,6 +249,7 @@ export const Entry: React.FC<EntryProps> = ({
     entryCode: string,
     sectionId: string
   ) => {
+    setEntryIdOpen(null);
     deleteBookmarkByReference(entryId);
     let prevEntries = entries
       .filter((entry) => entry.id !== entryId)
@@ -290,6 +317,7 @@ export const Entry: React.FC<EntryProps> = ({
     updateEvidenceList(evidences, entries);
     const newEvidenceIds = getEvidenceIds(evidences);
     setIsEditing(false);
+    setEntryIdOpen(null);
     setEntries((oldEntries) => {
       const newEntries = [...oldEntries];
       const entryIndex = newEntries.findIndex(
@@ -322,7 +350,7 @@ export const Entry: React.FC<EntryProps> = ({
               hideEntriesHighlighter &&
               getCurrentTool.id === Tool.Cursor),
           "pointer-events-none": isHidden,
-          "w-1/2": shownInPopup,
+          "flex-1": shownInPopup,
         })}>
         <div
           className={cx("flex flex-col", {
@@ -377,15 +405,19 @@ export const Entry: React.FC<EntryProps> = ({
                 <Tooltip text="Bezugnahme gesondert anzeigen">
                   <ArrowSquareOut
                     size={14}
-                    onClick={() =>
-                      setIsAssociationsPopupOpen(true)
-                    }></ArrowSquareOut>
+                    onClick={() => {
+                      setAssociatedEntry(
+                        getEntryById(entries, entry.associatedEntry!)!
+                      );
+                      setIsAssociationsPopupOpen(true);
+                    }}></ArrowSquareOut>
                 </Tooltip>
               </a>
-            ) : (
-              //spacing
+            ) : !shownInPopup ? (
+              // spacing
               <div className="h-6"></div>
-            )}
+            ) : null}
+
             <div
               className={cx("shadow rounded-lg", {
                 "outline outline-2 outline-offset-4 outline-blue-600":
@@ -463,7 +495,7 @@ export const Entry: React.FC<EntryProps> = ({
                           showEditButton
                           editButtonContent={
                             <Tooltip asChild text="Name bearbeiten">
-                              <Pencil />
+                              <PencilSimple />
                             </Tooltip>
                           }
                           editButtonProps={{
@@ -537,15 +569,28 @@ export const Entry: React.FC<EntryProps> = ({
                                   Hinweis hinzufügen
                                 </li>
                               )}
-                              {!isOld && (
+                              {!isOld && !isEditing && (
                                 <>
                                   <li
                                     tabIndex={0}
                                     onClick={editEntry}
                                     className="flex items-center gap-2 p-2 rounded-lg hover:bg-offWhite focus:bg-offWhite focus:outline-none">
-                                    <Pencil size={20} />
+                                    <PencilSimple size={20} />
                                     Bearbeiten
                                   </li>
+                                  <li
+                                    tabIndex={0}
+                                    onClick={() =>
+                                      setIsDeleteErrorVisible(true)
+                                    }
+                                    className="flex items-center gap-2 p-2 rounded-lg text-vibrantRed hover:bg-offWhite focus:bg-offWhite focus:outline-none">
+                                    <Trash size={20} />
+                                    Löschen
+                                  </li>
+                                </>
+                              )}
+                              {!isOld && isEditing && (
+                                <>
                                   <li
                                     tabIndex={0}
                                     onClick={() =>
@@ -564,6 +609,23 @@ export const Entry: React.FC<EntryProps> = ({
                     </div>
                   )}
                 </EntryHeader>
+                {/* Associated Selection */}
+                {entry.associatedEntryText && (
+                  <div
+                    className={cx(
+                      "p-3 border border-t-0 bg-white text-zinc-600",
+                      {
+                        [`border-${
+                          getTheme(selectedTheme)?.secondaryPlaintiff
+                        }`]: isPlaintiff,
+                        [`border-${
+                          getTheme(selectedTheme)?.secondaryDefendant
+                        }`]: !isPlaintiff,
+                      }
+                    )}>
+                    {"\u00bb" + entry.associatedEntryText + "\u00ab"}
+                  </div>
+                )}
                 {/* Body */}
                 {isBodyOpen && !isEditing && (
                   <EntryBody
@@ -590,6 +652,7 @@ export const Entry: React.FC<EntryProps> = ({
                     setIsExpanded={() => setIsExpanded(!isExpanded)}
                     onAbort={() => {
                       setIsEditErrorVisible(true);
+                      setEntryIdOpen(null);
                     }}
                     onSave={(
                       plainText: string,
@@ -629,10 +692,10 @@ export const Entry: React.FC<EntryProps> = ({
                   Auf diesen Beitrag Bezug nehmen
                 </Button>
               </a>
-            ) : (
-              //spacing
+            ) : !shownInPopup ? (
+              // spacing
               <div className="h-9"></div>
-            )}
+            ) : null}
           </div>
           {isNewEntryVisible && (
             <div className={cx(`flex flex-col w-full`)}>
@@ -648,6 +711,7 @@ export const Entry: React.FC<EntryProps> = ({
                 sectionId={entry.sectionId}
                 associatedEntry={entry.id}
                 setIsNewEntryVisible={setIsNewEntryVisible}
+                // entryBelowId={undefined}
               />
             </div>
           )}
@@ -720,12 +784,21 @@ export const Entry: React.FC<EntryProps> = ({
         </div>
       </ErrorPopup>
       {isAssociationsPopupOpen && (
-        <AssociationsPopup
-          setIsAssociationsPopupOpen={setIsAssociationsPopupOpen}
-          entry={entry}
-          associatedEntry={
-            getEntryById(entries, entry.associatedEntry!)!
-          }></AssociationsPopup>
+        <PopupContainer
+          title={`Beitrag ${entry.entryCode} bezieht sich auf Beitrag ${
+            associatedEntry!.entryCode
+          }`}
+          isVisible={isAssociationsPopupOpen}
+          setIsVisible={setIsAssociationsPopupOpen}
+          width={60}
+          height={75}
+          spacing={1}
+          children={
+            <AssociationsPopup
+              setIsAssociationsPopupOpen={setIsAssociationsPopupOpen}
+              entry={entry}
+              associatedEntry={associatedEntry!}></AssociationsPopup>
+          }></PopupContainer>
       )}
     </>
   );

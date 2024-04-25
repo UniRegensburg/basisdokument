@@ -39,17 +39,15 @@ import {
 import "react-toastify/dist/ReactToastify.css";
 import Cookies from "js-cookie";
 import { useOnboarding } from "../contexts/OnboardingContext";
-import { VersionPopup } from "../components/VersionPopup";
+import { VersionPopup } from "../components/popups/VersionPopup";
 import { useSidebar } from "../contexts/SidebarContext";
-import { PatchnotesPopup } from "../components/PatchnotesPopup";
-import { ImprintPopup } from "../components/ImprintPopup";
 import { useEvidence } from "../contexts/EvidenceContext";
+import { ImprintPopup } from "../components/popups/ImprintPopup";
+import { PatchnotesPopup } from "../components/popups/PatchnotesPopup";
 
 interface AuthProps {
   setIsAuthenticated: (isAuthenticated: boolean) => void;
 }
-
-//TODO: Evidences richtig zuordnen!!!!!
 
 export const Auth: React.FC<AuthProps> = ({ setIsAuthenticated }) => {
   // States for the form
@@ -108,6 +106,8 @@ export const Auth: React.FC<AuthProps> = ({ setIsAuthenticated }) => {
     setEvidenceIdsDefendant,
     setPlaintiffFileVolume,
     setDefendantFileVolume,
+    setPlaintiffAttachments,
+    setDefendantAttachments,
   } = useEvidence();
 
   // Set React states when user enters/changes text input fields
@@ -349,6 +349,14 @@ export const Auth: React.FC<AuthProps> = ({ setIsAuthenticated }) => {
   // The imported data from the files is then merged into a React state (context provider).
   const setContextFromBasisdokument = (basisdokument: any) => {
     setVersionHistory(basisdokument.versions);
+    //if attachments are in plaintiff rubrum
+    if (basisdokument.metaDataAttachmentPlaintiff) {
+      setPlaintiffAttachments(basisdokument.metaDataAttachmentPlaintiff);
+    }
+    //if attachments are in defendant rubrum
+    if (basisdokument.metaDataAttachmentDefendant) {
+      setDefendantAttachments(basisdokument.metaDataAttachmentDefendant);
+    }
     //if evidences are already in own list
     if (basisdokument.evidences) {
       setEntries(basisdokument.entries);

@@ -4,6 +4,7 @@ import "react-toastify/dist/ReactToastify.css";
 import {
   BookmarkProvider,
   CaseProvider,
+  EntryProvider,
   ExportProvider,
   HeaderProvider,
   HintProvider,
@@ -12,13 +13,13 @@ import {
   PatchnotesProvider,
   SectionProvider,
   UserProvider,
+  EvidenceProvider,
+  OnboardingProvider,
+  SidebarProvider,
+  ViewProvider,
 } from "./contexts";
 import { Auth } from "./pages/Auth";
 import { Main } from "./pages/Main";
-import { OnboardingProvider } from "./contexts/OnboardingContext";
-import { SidebarProvider } from "./contexts/SidebarContext";
-import { ViewProvider } from "./contexts/ViewContext";
-import { EvidenceProvider } from "./contexts/EvidenceContext";
 
 const registerKeyListener = (e: KeyboardEvent) => {
   if (e.key === "r" && e.metaKey) {
@@ -45,27 +46,29 @@ export const App = () => {
               <HeaderProvider>
                 <CaseProvider>
                   <ViewProvider>
-                    <SidebarProvider>
-                      <NoteProvider>
-                        <HintProvider>
-                          <BookmarkProvider>
-                            <ExportProvider>
-                              <PatchnotesProvider>
-                                <ImprintProvider>
-                                  {isAuthenticated ? (
-                                    <Main />
-                                  ) : (
-                                    <Auth
-                                      setIsAuthenticated={setIsAuthenticated}
-                                    />
-                                  )}
-                                </ImprintProvider>
-                              </PatchnotesProvider>
-                            </ExportProvider>
-                          </BookmarkProvider>
-                        </HintProvider>
-                      </NoteProvider>
-                    </SidebarProvider>
+                    <EntryProvider>
+                      <SidebarProvider>
+                        <NoteProvider>
+                          <HintProvider>
+                            <BookmarkProvider>
+                              <ExportProvider>
+                                <PatchnotesProvider>
+                                  <ImprintProvider>
+                                    {isAuthenticated ? (
+                                      <Main />
+                                    ) : (
+                                      <Auth
+                                        setIsAuthenticated={setIsAuthenticated}
+                                      />
+                                    )}
+                                  </ImprintProvider>
+                                </PatchnotesProvider>
+                              </ExportProvider>
+                            </BookmarkProvider>
+                          </HintProvider>
+                        </NoteProvider>
+                      </SidebarProvider>
+                    </EntryProvider>
                   </ViewProvider>
                 </CaseProvider>
               </HeaderProvider>

@@ -2,7 +2,6 @@ import { CaretDown, CaretRight, Plus } from "phosphor-react";
 import { useState } from "react";
 import { Button } from "../Button";
 import { Note } from "./Note";
-import { NotePopup } from "../NotePopup";
 import { useNotes } from "../../contexts/NoteContext";
 
 export const SidebarNotes = () => {
@@ -11,7 +10,7 @@ export const SidebarNotes = () => {
   const [notesWithReferenceOpen, setNotesWithReferenceOpen] =
     useState<boolean>(true);
 
-  const { notes, setShowNotePopup, showNotePopup } = useNotes();
+  const { notes, setShowNotePopup } = useNotes();
 
   return (
     <div>
@@ -82,7 +81,6 @@ export const SidebarNotes = () => {
           </div>
         )}
       </div>
-      {showNotePopup ? <NotePopup /> : null}
     </div>
   );
 };

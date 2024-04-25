@@ -1,7 +1,7 @@
 import cx from "classnames";
 import { SelectionForeground } from "phosphor-react";
 import React from "react";
-import { useHeaderContext, useUser } from "../../contexts";
+import { useEntries, useHeaderContext, useUser } from "../../contexts";
 import { useView } from "../../contexts/ViewContext";
 import { Tool, UserRole, ViewMode } from "../../types";
 import { Tooltip } from "../Tooltip";
@@ -30,6 +30,15 @@ export const DropdownHeader: React.FC<any> = () => {
   } = useHeaderContext();
   const { user } = useUser();
   const { view, setView } = useView();
+  const { entryIdOpen, setIsEntryPopupOpen } = useEntries();
+
+  const setNewView = (viewMode: ViewMode) => {
+    if (entryIdOpen !== null) {
+      setIsEntryPopupOpen(true);
+    } else {
+      setView(viewMode);
+    }
+  };
 
   return (
     <div className="flex flex-row gap-4 p-2 pl-8 pr-8 bg-white items-center">
@@ -54,7 +63,7 @@ export const DropdownHeader: React.FC<any> = () => {
                   }
                 )}
                 onClick={() => {
-                  setView(ViewMode.SideBySide);
+                  setNewView(ViewMode.SideBySide);
                 }}>
                 <img
                   className={showEntrySorting ? "w-4 opacity-25" : "w-4"}
@@ -77,7 +86,7 @@ export const DropdownHeader: React.FC<any> = () => {
                   }
                 )}
                 onClick={() => {
-                  setView(ViewMode.Columns);
+                  setNewView(ViewMode.Columns);
                 }}>
                 <img
                   className={showEntrySorting ? "w-4 opacity-25" : "w-4"}
@@ -100,7 +109,7 @@ export const DropdownHeader: React.FC<any> = () => {
                   }
                 )}
                 onClick={() => {
-                  setView(ViewMode.Rows);
+                  setNewView(ViewMode.Rows);
                 }}>
                 <img
                   className={showEntrySorting ? "w-4 opacity-25" : "w-4"}
@@ -111,7 +120,7 @@ export const DropdownHeader: React.FC<any> = () => {
           </div>
           {user?.role === UserRole.Judge &&
           selectedSorting === Sorting.Privat ? (
-            <div className="flex flex-row items-center gap-2">
+            <div className="flex flex-row items-center gap-2 ml-2">
               <Tooltip
                 asChild
                 text="Erlaubt Ihnen die Verschiebung von Beiträgen innerhalb einzelner Gliederungspunkte. Die Sortierung der Beiträge ist nur für Sie sichtbar.">
@@ -123,7 +132,7 @@ export const DropdownHeader: React.FC<any> = () => {
                       iconNode: "Cursor",
                       germanTitle: "Maus",
                     });
-                    setView(ViewMode.Columns);
+                    setNewView(ViewMode.Columns);
                     setShowEntrySorting(!showEntrySorting);
                   }}>
                   <input
